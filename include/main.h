@@ -42,6 +42,9 @@
 #include "okapi/api.hpp"
 //#include "pros/api_legacy.h"
 #include "config.hpp"
+#include "subsystem/tray.hpp"
+#include "subsystem/rd4b.hpp"
+#include "auton/lcd.hpp"
 
 /**
  * If you find doing pros::Motor() to be tedious and you'd prefer just to do

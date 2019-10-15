@@ -3,9 +3,13 @@
 namespace subsystem {
 namespace tray {
 
-// using namespace units::literals;
+mode currMode = mode::holding;
+mode lastMode = currMode;
+mode nextMode = currMode;
+state currState = state::disabled;
+state lastState = state::disabled;
 
-okapi::MotorGroup trayMotor = okapi::MotorGroup({9});
+// using namespace units::literals;
 
 // units::angular_velocity::revolutions_per_minute_t velConstraint =
 // 200_rad_per_s; units::angular_acceleration::revolutions_per_minute2_t
@@ -30,7 +34,9 @@ motion::PID trayPID(0.009, 0.0, 0.0, 0.0);
 void init() {
   pros::Task trayTask(run, nullptr, "Tray");
   currState = state::running;
-  currMode = mode::targeting;
+  currMode = mode::holding;
+  robot::tilt.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+  robot::tilt.tarePosition();
 }
 
 void run(void* p) {
@@ -39,54 +45,87 @@ void run(void* p) {
   timer.placeMark();
 
   bool motionProfileComplete = false;
-  mode nextMode = currMode;
   int motionprofileDirection = 1;
+  bool startedPlacing = false;
+  bool motionProfileDisabled = true;
   while (true) {
-    switch (currState) {
-      case state::running:
-        switch (currMode) {
-          case mode::placing: {
-            int error = getTarget(placed) - trayMotor.getPosition();
-            if (lastMode != mode::placing) {
-              motionProfileComplete = false;
-              profile = motion::SCurveProfile(trayConstraints, abs(error));
-              timer.placeMark();
-              if (error < 0) { // reverse the profile if the thing is backwards
-                motionprofileDirection = -1;
-              } else {
-                motionprofileDirection = 1;
-              }
-            }
-            if (!motionProfileComplete || abs(error) > 150) {
-              double totalDt =
-                  timer.getDtFromMark().convert(okapi::minute);
-              if (totalDt > profile.getTotalTime()) {
-                totalDt = profile.getTotalTime();
-                motionProfileComplete = true;
-              }
-              auto output = profile.calculate(totalDt);
-              trayMotor.moveVelocity(ikVelocity(output.velocity) * motionprofileDirection);
-            } else {
-              double voltage = trayPID.calculate(error);
-              trayMotor.moveVoltage(voltage * 12000.0);
-            }
-          } break;
-          case mode::targeting:
-            trayMotor.moveAbsolute(getTarget(normal), 200);
-            break;
+    if (currMode != mode::placing) {
+      motionProfileComplete = false;
+      motionprofileDirection = 1;
+      startedPlacing = false;
+    }
+
+    switch (currMode) {
+      case mode::placing: {
+        printf("%d: Entered placing\n", pros::millis());
+        int error = getTarget(placed) - robot::tilt.getPosition();
+        if (/*lastMode != mode::placing*/ !startedPlacing) {
+          printf("%d: Entered start of place, ", pros::millis());
+          startedPlacing = true;
+          motionProfileComplete = false;
+          profile = motion::SCurveProfile(trayConstraints, abs(error / 360.0));
+          printf(
+              "Generated Profile, current pos: %1.2f, target: %1.2f, error: "
+              "%1.2f",
+              robot::tilt.getPosition(), getTarget(placed), error);
+          timer.placeMark();
+          if (error < 0) {  // reverse the profile if the thing is backwards
+            motionprofileDirection = -1;
+          } else {
+            motionprofileDirection = 1;
+          }
+        }
+        subsystem::intake::free();
+        if ((!motionProfileComplete || abs(error) > 150) &&
+            !motionProfileDisabled) {
+          printf("%d: Error: %d, ", error, pros::millis());
+          double totalDt = timer.getDtFromMark().convert(okapi::minute);
+          if (totalDt > profile.getTotalTime()) {
+            totalDt = profile.getTotalTime();
+            motionProfileComplete = true;
+          }
+          auto output = profile.calculate(totalDt);
+          robot::tilt.moveVelocity(ikVelocity(output.velocity) *
+                                   motionprofileDirection);
+          printf("moving at v=%1.2f\n", output.velocity * 100000000);
+          if (motionProfileComplete) {
+            printf("%d: profile complete!\n", pros::millis());
+          }
+        } else if (motionProfileDisabled) {
+          trayPID.setTarget(getTarget(placed));
+          double voltage = trayPID.calculate(robot::tilt.getPosition());
+          voltage = std::min(voltage, 1.0);
+          voltage = std::max(voltage, -1.0);
+          robot::tilt.moveVoltage(voltage * -12000.0);
+          printf("%d: Voltage: %1.2f, ", pros::millis(), voltage * 12000.0);
+          printf("Error: %d, ", error);
+          printf("Pos: %1.2f, ", robot::tilt.getPosition());
+        }
+
+        if (abs(error) < 50) {
+          printf("aight imma head out\n");
+          nextMode = mode::holding;
+        }
+      } break;
+      case mode::standby:
+        subsystem::intake::free();
+        robot::tilt.moveAbsolute(getTarget(normal), 200);
+        if (abs(robot::tilt.getTargetPosition() - robot::tilt.getPosition()) <
+            50) {
+          nextMode = mode::holding;
         }
         break;
-      case state::holding:
-        trayMotor.moveVelocity(0);
+      case mode::holding:
+        subsystem::intake::manual();
+        robot::tilt.moveVelocity(0);
         break;
     }
 
     lastMode = currMode;
     currMode = nextMode;
-    lastState = currState;
     pros::delay(10);
   }
-}
+}  // namespace tray
 
 void moveMotionProfile(double target) {}
 
@@ -95,7 +134,7 @@ void movePID(double target) {}
 int getTarget(targets targ) {
   switch (targ) {
     case placed:
-      return 170;
+      return 1810;
       break;
     case normal:
       return 0;
@@ -107,12 +146,10 @@ int getTarget(targets targ) {
 
 void changeMode(mode mode) {
   lastMode = currMode;
-  currMode = mode;
+  nextMode = mode;
 }
 
-double ikVelocity(double omega_in) {
-  return omega_in;
-}
+double ikVelocity(double omega_in) { return omega_in; }
 
 }  // namespace tray
 }  // namespace subsystem

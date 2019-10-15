@@ -7,7 +7,14 @@
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+  robot::intakeLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+  robot::intakeRight.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
 
+  subsystem::intake::init();
+  subsystem::tray::init();
+  subsystem::rd4b::init();
+
+  lcd::initButtons();
 }
 
 /**
@@ -42,7 +49,7 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-
+  lcd::runAuton();
 }
 
 /**
@@ -66,10 +73,11 @@ void opcontrol() {
   robot::frontLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   robot::frontRight.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
-  robot::intakeLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
-  robot::intakeRight.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+  subsystem::rd4b::changeState(subsystem::rd4b::state::manual);
+  subsystem::intake::manual();
 
-  robot::tilt.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+  okapi::ControllerButton placeButton(okapi::ControllerDigital::up);
+  okapi::ControllerButton standbyButton(okapi::ControllerDigital::down);
 
 	while (true) {
 		double strafeLeft = master.getAnalog(okapi::ControllerAnalog::leftX);
@@ -104,16 +112,23 @@ void opcontrol() {
       robot::backLeft.moveVelocity(0);
     }
 
-    double intakePower = (master.getDigital(okapi::ControllerDigital::R1) - master.getDigital(okapi::ControllerDigital::R2)) * 12000.0;
-    if (fabs(intakePower) >= 200) {
-      robot::intakeLeft.moveVoltage(intakePower);
-      robot::intakeRight.moveVoltage(intakePower);
-    } else {
-      robot::intakeLeft.moveVelocity(0);
-      robot::intakeRight.moveVelocity(0);
+    // double intakePower = (master.getDigital(okapi::ControllerDigital::R1) - master.getDigital(okapi::ControllerDigital::R2)) * 12000.0;
+    // if (fabs(intakePower) >= 200) {
+    //   robot::intakeLeft.moveVoltage(intakePower);
+    //   robot::intakeRight.moveVoltage(intakePower);
+    // } else {
+    //   robot::intakeLeft.moveVelocity(0);
+    //   robot::intakeRight.moveVelocity(0);
+    // }
+
+    if (placeButton.changedToPressed()) {
+      subsystem::tray::changeMode(subsystem::tray::mode::placing);
+    }
+    
+    if (standbyButton.changedToPressed()) {
+      subsystem::tray::changeMode(subsystem::tray::mode::standby);
     }
 
-    robot::tilt.moveVelocity(200 * (master.getDigital(okapi::ControllerDigital::L2) - master.getDigital(okapi::ControllerDigital::L1)));
 
     pros::delay(10);
 	}

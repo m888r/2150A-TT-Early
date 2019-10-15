@@ -4,6 +4,8 @@
 #include "motion/profiling.hpp"
 #include "motion/sCurveProfile.hpp"
 #include "motion/pid.hpp"
+#include "config.hpp"
+#include "subsystem/intake.hpp"
 
 //#include "moreunits.hpp"
 
@@ -19,15 +21,14 @@ enum targets {
 
 int getTarget(targets targ);
 
-enum class mode { placing, targeting };
-mode currMode;
-mode lastMode;
+enum class mode { placing, standby, hightower, holding};
+extern mode currMode;
+extern mode lastMode;
 
-enum class state { running, disabled, holding};
-state currState = state::disabled;
-state lastState = state::disabled;
+enum class state { running, disabled, holding}; // not using anymore
+extern state currState;
+extern state lastState;
 
-extern okapi::MotorGroup trayMotor;
 extern structs::KinematicConstraints trayConstraints;
 
 extern motion::PID trayPID;

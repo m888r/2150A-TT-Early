@@ -10,8 +10,11 @@ namespace robot {
 
   extern okapi::Motor intakeRight;
   extern okapi::Motor intakeLeft;
+  extern okapi::MotorGroup intakeGroup;
   
   extern okapi::Motor tilt;
 
   extern okapi::Motor lift;
+
+  extern okapi::AsyncMotionProfileController straightAMPC;
 }

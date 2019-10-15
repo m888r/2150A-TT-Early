@@ -5,14 +5,19 @@
 
 namespace robot {
   okapi::Motor frontRight(-20);
-  okapi::Motor frontLeft(19);
-  okapi::Motor backRight(-10);
-  okapi::Motor backLeft(3);
+  okapi::Motor frontLeft(10);
+  okapi::Motor backRight(-11);
+  okapi::Motor backLeft(1);
 
-  okapi::Motor intakeRight(18);
-  okapi::Motor intakeLeft(-1);
+  okapi::Motor intakeRight(15);
+  okapi::Motor intakeLeft(-7);
+  okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
   
-  okapi::Motor tilt(9);
+  okapi::Motor tilt(14);
 
-  okapi::Motor lift(8);
+  okapi::Motor lift(13);
+
+  // okapi::ChassisController chassisStraight = okapi::ChassisControllerBuilder.withMotors({frontLeft, frontRight}, {backLeft, backRight}).withDimensions({3.25 * okapi::inch, 11 * okapi::inch}).build();
+
+  // okapi::AsyncMotionProfileController straightAMPC = okapi::AsyncMotionProfileControllerBuilder.withOutput().buildMotionProfileController();
 }
