@@ -68,10 +68,7 @@ void autonomous() {
 void opcontrol() {
   okapi::Controller master(okapi::ControllerId::master);
 
-  robot::backLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-  robot::backRight.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-  robot::frontLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-  robot::frontRight.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+  robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
   subsystem::rd4b::changeState(subsystem::rd4b::state::manual);
   subsystem::intake::manual();
@@ -91,35 +88,20 @@ void opcontrol() {
     int threshold = 0.05;
 
     if (fabs(strafeLeft) > threshold || fabs(strafeRight) > threshold || fabs(forwardLeft) > threshold || fabs(forwardRight) > threshold) {
-      robot::backLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-      robot::backRight.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-      robot::frontLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-      robot::frontRight.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+      robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
       robot::frontRight.moveVoltage((forwardRight - strafeRight) * 12000.0);
       robot::frontLeft.moveVoltage((forwardLeft + strafeLeft) * 12000.0);
       robot::backRight.moveVoltage((forwardRight + strafeRight) * 12000.0);
       robot::backLeft.moveVoltage((forwardLeft - strafeLeft) * 12000.0);
     } else {
-      robot::backLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
-      robot::backRight.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
-      robot::frontLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
-      robot::frontRight.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+      robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
 
       robot::frontRight.moveVelocity(0);
       robot::frontLeft.moveVelocity(0);
       robot::backRight.moveVelocity(0);
       robot::backLeft.moveVelocity(0);
     }
-
-    // double intakePower = (master.getDigital(okapi::ControllerDigital::R1) - master.getDigital(okapi::ControllerDigital::R2)) * 12000.0;
-    // if (fabs(intakePower) >= 200) {
-    //   robot::intakeLeft.moveVoltage(intakePower);
-    //   robot::intakeRight.moveVoltage(intakePower);
-    // } else {
-    //   robot::intakeLeft.moveVelocity(0);
-    //   robot::intakeRight.moveVelocity(0);
-    // }
 
     if (placeButton.changedToPressed()) {
       subsystem::tray::changeMode(subsystem::tray::mode::placing);

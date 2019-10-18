@@ -1,12 +1,16 @@
 #include "config.hpp"
 #include "auton/autos.hpp"
+#include "subsystem/drive.hpp"
+
+using namespace okapi::literals;
+using namespace subsystem;
 
 //blueclose
 void blueClosePaths() {
     
 }
 
-// auton for blue side closer to flags
+// auton for blue side closer to double zone
 void blueCloseAuto() {
 }
 
@@ -21,10 +25,11 @@ void blueFarAuto() {
 
 //redclose
 void redClosePaths() {
-
+  drive::moveDistanceProfile(1.5);
 }
 
 void redCloseAuto() {
+
 }
 
 //redfar

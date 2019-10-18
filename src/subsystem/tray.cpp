@@ -29,7 +29,7 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.009, 0.0, 0.0, 0.0);
+motion::PID trayPID(0.0018, 0.0, 0.0, 0.0);
 
 void init() {
   pros::Task trayTask(run, nullptr, "Tray");
@@ -37,6 +37,7 @@ void init() {
   currMode = mode::holding;
   robot::tilt.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
   robot::tilt.tarePosition();
+  robot::tilt.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
 }
 
 void run(void* p) {
@@ -57,7 +58,8 @@ void run(void* p) {
 
     switch (currMode) {
       case mode::placing: {
-        printf("%d: Entered placing\n", pros::millis());
+
+        //printf("%d: Entered placing\n", pros::millis());
         int error = getTarget(placed) - robot::tilt.getPosition();
         if (/*lastMode != mode::placing*/ !startedPlacing) {
           printf("%d: Entered start of place, ", pros::millis());
@@ -75,7 +77,7 @@ void run(void* p) {
             motionprofileDirection = 1;
           }
         }
-        subsystem::intake::free();
+        subsystem::intake::changeState(subsystem::intake::state::placing);
         if ((!motionProfileComplete || abs(error) > 150) &&
             !motionProfileDisabled) {
           printf("%d: Error: %d, ", error, pros::millis());
@@ -96,10 +98,10 @@ void run(void* p) {
           double voltage = trayPID.calculate(robot::tilt.getPosition());
           voltage = std::min(voltage, 1.0);
           voltage = std::max(voltage, -1.0);
-          robot::tilt.moveVoltage(voltage * -12000.0);
+          robot::tilt.moveVelocity(voltage * 200.0);
           printf("%d: Voltage: %1.2f, ", pros::millis(), voltage * 12000.0);
           printf("Error: %d, ", error);
-          printf("Pos: %1.2f, ", robot::tilt.getPosition());
+          printf("Pos: %1.2f\n", robot::tilt.getPosition());
         }
 
         if (abs(error) < 50) {
@@ -108,7 +110,7 @@ void run(void* p) {
         }
       } break;
       case mode::standby:
-        subsystem::intake::free();
+        //subsystem::intake::free();
         robot::tilt.moveAbsolute(getTarget(normal), 200);
         if (abs(robot::tilt.getTargetPosition() - robot::tilt.getPosition()) <
             50) {
