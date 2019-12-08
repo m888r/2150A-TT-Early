@@ -1,6 +1,8 @@
 #include "motion/odometry.hpp"
 
 namespace motion {
+using namespace structs;
+
 Odometry::Odometry(const okapi::ADIEncoder &leftEnc,
                    const okapi::ADIEncoder &rightEnc,
                    okapi::QLength chassisWidth, okapi::QLength wheelDiameter)
@@ -56,12 +58,47 @@ void Odometry::update() {
   double dEncR = encR - lastRightEnc;
   double avgEnc = (dEncL + dEncR) / 2.0;
 
-  double deltaHeading = (dEncL - dEncR) / chassisWidth.convert(okapi::meter);
-  storedPose.theta += deltaHeading * okapi::radian;
+  double deltaHeading = (dEncR - dEncL) / chassisWidth.convert(okapi::meter);
+
+  double r1 = deltaHeading == 0 ? 0 : avgEnc / deltaHeading;
+
+  PositionVector positionUpdate(
+      okapi::meter *
+          (deltaHeading == 0 ? avgEnc : (r1 * std::sin(deltaHeading))),
+      okapi::meter *
+          (deltaHeading == 0 ? 0 : (r1 - r1 * std::cos(deltaHeading))));
+
+  double encC = (centerEnc != nullptr) ? ticksToMeter(centerEnc->get()) : 0;
+  double centerWidth = centerOffset.convert(okapi::meter);
+
+  double rC = deltaHeading == 0 ? 0 : encC / deltaHeading;
+
+  PositionVector centerPositionUpdate(
+      okapi::meter *
+          (deltaHeading == 0 ? 0 : (rC - rC * std::cos(deltaHeading))),
+      okapi::meter *
+          (deltaHeading == 0 ? encC : (rC * std::sin(deltaHeading))));
+  
+  centerPositionUpdate.rotateSelf(storedPose.heading + (1_pi/2.0) * okapi::radian); 
+  // remember to add vector from the center encoder to the center of the robot
+  storedPose.position.addSelf(centerPositionUpdate);
+
+  positionUpdate.rotateSelf(storedPose.heading);
+  positionUpdate.setSelf(PositionVector(positionUpdate.getX(),  // 😂
+                                        -positionUpdate.getY()));
+  storedPose.position.addSelf(positionUpdate);
+  storedPose.turn(okapi::radian * deltaHeading);
+
+  while (storedPose.heading >= (2_pi) * okapi::radian) {
+    storedPose.heading -= 2_pi * okapi::radian;
+  }
+  while (storedPose.heading < 0_rad) {
+    storedPose.heading += 2_pi * okapi::radian;
+  }
 
   lastLeftEnc = encL;
   lastRightEnc = encR;
-  
+
   poseMutex.take(TIMEOUT_MAX);
   currPose = storedPose;
   poseMutex.give();

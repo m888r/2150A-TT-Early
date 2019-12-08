@@ -1,4 +1,5 @@
 #include "main.h"
+#include "auton/autos.hpp"
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -13,8 +14,6 @@ void initialize() {
   subsystem::intake::init();
   subsystem::tray::init();
   subsystem::rd4b::init();
-
-  lcd::initButtons();
 }
 
 /**
@@ -34,7 +33,10 @@ void disabled() {}
  * starts.
  */
 void competition_initialize() {
-
+  robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+  robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+  pros::delay(200);
+  lcd::initButtons();
 }
 
 /**
@@ -50,6 +52,10 @@ void competition_initialize() {
  */
 void autonomous() {
   lcd::runAuton();
+  //redCloseAuto();
+  //blueCloseAuto();
+  //blueFarAuto();
+  //redFarAuto();
 }
 
 /**
@@ -68,9 +74,10 @@ void autonomous() {
 void opcontrol() {
   okapi::Controller master(okapi::ControllerId::master);
 
-  robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+  robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
 
   subsystem::rd4b::changeState(subsystem::rd4b::state::manual);
+  robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   subsystem::intake::manual();
 
   okapi::ControllerButton placeButton(okapi::ControllerDigital::up);
@@ -95,7 +102,7 @@ void opcontrol() {
       robot::backRight.moveVoltage((forwardRight + strafeRight) * 12000.0);
       robot::backLeft.moveVoltage((forwardLeft - strafeLeft) * 12000.0);
     } else {
-      robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+      robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
       robot::frontRight.moveVelocity(0);
       robot::frontLeft.moveVelocity(0);
@@ -110,6 +117,7 @@ void opcontrol() {
     if (standbyButton.changedToPressed()) {
       subsystem::tray::changeMode(subsystem::tray::mode::standby);
     }
+
 
 
     pros::delay(10);

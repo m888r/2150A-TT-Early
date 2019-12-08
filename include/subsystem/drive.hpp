@@ -9,9 +9,13 @@ namespace drive {
 
   void turnTo(okapi::QAngle angle);
 
-  void moveDistanceProfile(double distance, bool backwards = false, double maxVel = 1.05, double maxAccel = 2.0);
+  using namespace okapi::literals;
+
+  void moveDistanceProfile(double distance, okapi::QAngle angleTarget = 0_deg, double maxVel = 1.22, double maxAccel = 1.0, bool strafing = false);
   
   void waitUntilSettled();
+
+  bool isProfileDone();
 
 }
 }  // namespace motion

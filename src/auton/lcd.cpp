@@ -126,30 +126,38 @@ void generatePaths(void *param)
 
 void initButtons()
 {
+
     curr_sel_label = lv_label_create(lv_scr_act(), NULL);
     lv_label_set_text(curr_sel_label, "Nothing Selected");
     lv_obj_align(curr_sel_label, lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 20);
 
     blue_close = lv_btn_create(lv_scr_act(), NULL);
     lv_obj_align(blue_close, lv_scr_act(), LV_ALIGN_IN_TOP_RIGHT, 10, 0);
+    lv_btn_get_style(blue_close, LV_BTN_STYLE_REL)->body.main_color = LV_COLOR_BLUE;
     lv_obj_t *blueCloseLabel = lv_label_create(blue_close, NULL);
     lv_label_set_text(blueCloseLabel, "Blue Close");
     lv_cont_set_fit(blue_close, true, true);
 
     red_close = lv_btn_create(lv_scr_act(), NULL);
     lv_obj_align(red_close, lv_scr_act(), LV_ALIGN_IN_TOP_LEFT, 10, 0);
+    
+    lv_btn_get_style(red_close, LV_BTN_STYLE_REL)->body.main_color = LV_COLOR_RED;
     lv_obj_t *redCloseLabel = lv_label_create(red_close, NULL);
     lv_label_set_text(redCloseLabel, "Red Close");
     lv_cont_set_fit(red_close, true, true);
 
     blue_far = lv_btn_create(lv_scr_act(), NULL);
     lv_obj_align(blue_far, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, 10, 0);
+    
+    lv_btn_get_style(blue_far, LV_BTN_STYLE_REL)->body.main_color = LV_COLOR_BLUE;
     lv_obj_t *blueFarLabel = lv_label_create(blue_far, NULL);
     lv_label_set_text(blueFarLabel, "Blue Far");
     lv_cont_set_fit(blue_far, true, true);
 
     red_far = lv_btn_create(lv_scr_act(), NULL);
     lv_obj_align(red_far, lv_scr_act(), LV_ALIGN_IN_BOTTOM_LEFT, 10, 0);
+    
+    lv_btn_get_style(red_far, LV_BTN_STYLE_REL)->body.main_color = LV_COLOR_RED;
     lv_obj_t *redFarLabel = lv_label_create(red_far, NULL);
     lv_label_set_text(redFarLabel, "Red Far");
     lv_cont_set_fit(red_far, true, true);

@@ -29,7 +29,7 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.0018, 0.0, 0.0, 0.0);
+motion::PID trayPID(0.0022, 0.0, 0.0, 0); // was 0.0017
 
 void init() {
   pros::Task trayTask(run, nullptr, "Tray");
@@ -58,9 +58,8 @@ void run(void* p) {
 
     switch (currMode) {
       case mode::placing: {
-
-        //printf("%d: Entered placing\n", pros::millis());
-        int error = getTarget(placed) - robot::tilt.getPosition();
+        // printf("%d: Entered placing\n", pros::millis());
+        int error = (placed) - robot::tilt.getPosition();
         if (/*lastMode != mode::placing*/ !startedPlacing) {
           printf("%d: Entered start of place, ", pros::millis());
           startedPlacing = true;
@@ -69,7 +68,7 @@ void run(void* p) {
           printf(
               "Generated Profile, current pos: %1.2f, target: %1.2f, error: "
               "%1.2f",
-              robot::tilt.getPosition(), getTarget(placed), error);
+              robot::tilt.getPosition(), (placed), error);
           timer.placeMark();
           if (error < 0) {  // reverse the profile if the thing is backwards
             motionprofileDirection = -1;
@@ -94,7 +93,7 @@ void run(void* p) {
             printf("%d: profile complete!\n", pros::millis());
           }
         } else if (motionProfileDisabled) {
-          trayPID.setTarget(getTarget(placed));
+          trayPID.setTarget((placed));
           double voltage = trayPID.calculate(robot::tilt.getPosition());
           voltage = std::min(voltage, 1.0);
           voltage = std::max(voltage, -1.0);
@@ -110,15 +109,19 @@ void run(void* p) {
         }
       } break;
       case mode::standby:
-        //subsystem::intake::free();
-        robot::tilt.moveAbsolute(getTarget(normal), 200);
+        // subsystem::intake::free();
+        subsystem::intake::changeState(subsystem::intake::state::placing);
+        robot::tilt.moveAbsolute((normal), 200);
         if (abs(robot::tilt.getTargetPosition() - robot::tilt.getPosition()) <
             50) {
           nextMode = mode::holding;
         }
         break;
       case mode::holding:
-        subsystem::intake::manual();
+        if (!pros::competition::is_autonomous()) {
+          subsystem::intake::manual();
+        }
+
         robot::tilt.moveVelocity(0);
         break;
     }
@@ -133,18 +136,21 @@ void moveMotionProfile(double target) {}
 
 void movePID(double target) {}
 
-int getTarget(targets targ) {
-  switch (targ) {
-    case placed:
-      return 1810;
-      break;
-    case normal:
-      return 0;
-      break;
-    case hightower:
-      return 30;
-  }
-}
+// int getTarget(targets targ) {
+//   switch (targ) {
+//     case placed:
+//       return 1810;
+//       break;
+//     case intakeIntersect:
+//       return 950;
+//       break;
+//     case normal:
+//       return 0;
+//       break;
+//     case hightower:
+//       return 30;
+//   }
+// }
 
 void changeMode(mode mode) {
   lastMode = currMode;

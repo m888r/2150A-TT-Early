@@ -14,9 +14,10 @@ namespace tray {
 
 //using namespace okapi;
 enum targets {
-  placed,
-  normal,
-  hightower
+  placed = 1260, // 1320 fully vertical
+  intakeIntersect = 700,
+  normal = 0,
+  hightower = 30
 };
 
 int getTarget(targets targ);

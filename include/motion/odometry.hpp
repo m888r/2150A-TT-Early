@@ -3,19 +3,21 @@
 #include <atomic>
 #include "api.h"
 #include "okapi/api.hpp"
+#include "structs.hpp"
 
 namespace motion {
 using namespace okapi::literals;
-struct Pose {
-  okapi::QLength x;
-  okapi::QLength y;
-  okapi::QAngle theta;
+using namespace structs;
+// struct Pose {
+//   okapi::QLength x;
+//   okapi::QLength y;
+//   okapi::QAngle theta;
 
-  Pose() : x(0_in), y(0_in), theta(0_deg) {}
+//   Pose() : x(0_in), y(0_in), theta(0_deg) {}
 
-  Pose(okapi::QLength x, okapi::QLength y, okapi::QAngle theta)
-      : x(x), y(y), theta(theta) {}
-};
+//   Pose(okapi::QLength x, okapi::QLength y, okapi::QAngle theta)
+//       : x(x), y(y), theta(theta) {}
+// };
 
 class Odometry {
  public:
@@ -38,6 +40,7 @@ class Odometry {
   okapi::QLength chassisWidth;
   okapi::QLength wheelDiameter;
   okapi::QLength centerOffset = 0_in;
+
 
   pros::Mutex poseMutex;
 

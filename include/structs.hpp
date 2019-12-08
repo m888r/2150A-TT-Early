@@ -77,7 +77,7 @@ struct KinematicConstraints {
   double maxJerk;
 
  public:
-  KinematicConstraints(double maxVel, double maxAccel, double maxJerk = 0.0) {};
+  KinematicConstraints(double maxVel, double maxAccel, double maxJerk = 0.0);
 };
 
 struct PIDGains {

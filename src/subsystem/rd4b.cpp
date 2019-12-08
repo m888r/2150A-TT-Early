@@ -13,6 +13,8 @@ pros::Mutex stateMutex;
 
 void init() {
   robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+  robot::lift.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
+  robot::lift.tarePosition();
   currState = state::holding;
   pros::Task rd4bTask(run, nullptr, "RD4B");
 }
@@ -35,7 +37,7 @@ void run(void* p) {
       case state::targeting:
         robot::lift.moveAbsolute(currTarget, 200);
         if (abs(robot::lift.getTargetPosition() - robot::lift.getPosition()) <
-            70) {
+            25) {
           stateMutex.take(TIMEOUT_MAX);
           currState = state::holding;
           stateMutex.give();
@@ -83,5 +85,13 @@ void changeState(state state) {
   currState = state;
   stateMutex.give();
 }
+
+void waitUntilSettled() {
+  while (abs(robot::lift.getTargetPosition() - robot::lift.getPosition()) > 50) {
+    pros::delay(10);
+  }
+}
+
+state getState() { return currState;}
 }  // namespace rd4b
 }  // namespace subsystem
