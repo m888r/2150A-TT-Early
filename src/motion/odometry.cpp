@@ -81,6 +81,8 @@ void Odometry::update() {
   
   centerPositionUpdate.rotateSelf(storedPose.heading + (1_pi/2.0) * okapi::radian); 
   // remember to add vector from the center encoder to the center of the robot
+  PositionVector centerOffsetVector(std::cos(deltaHeading) * centerOffset, std::sin(deltaHeading) * centerOffset);
+
   storedPose.position.addSelf(centerPositionUpdate);
 
   positionUpdate.rotateSelf(storedPose.heading);
