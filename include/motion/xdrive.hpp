@@ -10,8 +10,6 @@ class XDrive {
          double b);
   
   // state vector (x, y, theta), control vector (v1, v2, v3, v4)
-  Eigen::Matrix<double, 4, 4> fk(Eigen::Matrix<double, 3, 1> x, Eigen::Matrix<double, 4, 1> u) {
-
-  }
+  Eigen::Matrix4d fk(Eigen::Vector3d x, Eigen::Vector4d u);
 };
 }  // namespace motion

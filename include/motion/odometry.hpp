@@ -32,6 +32,8 @@ class Odometry {
 
   void update();
 
+  okapi::QLength getDistanceTo(okapi::QLength x, okapi::QLength y);
+
  private:
   okapi::ADIEncoder leftEnc;
   okapi::ADIEncoder rightEnc;

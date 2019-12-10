@@ -79,9 +79,13 @@ void Odometry::update() {
       okapi::meter *
           (deltaHeading == 0 ? encC : (rC * std::sin(deltaHeading))));
   
-  centerPositionUpdate.rotateSelf(storedPose.heading + (1_pi/2.0) * okapi::radian); 
-  // remember to add vector from the center encoder to the center of the robot
-  PositionVector centerOffsetVector(std::cos(deltaHeading) * centerOffset, std::sin(deltaHeading) * centerOffset);
+  centerPositionUpdate.rotateSelf(storedPose.heading + 90_deg); 
+  // remember to add vector from the center encoder to the center of the robot but without constantly adding when the robot isn't moving
+  //PositionVector centerOffsetVector(std::cos(deltaHeading) * centerOffset, std::sin(deltaHeading) * centerOffset);
+  PositionVector centerOffsetVector(0_in, centerOffset);
+  if (deltaHeading != 0) {
+    positionUpdate.addSelf(centerOffsetVector);
+  }
 
   storedPose.position.addSelf(centerPositionUpdate);
 
@@ -91,11 +95,11 @@ void Odometry::update() {
   storedPose.position.addSelf(positionUpdate);
   storedPose.turn(okapi::radian * deltaHeading);
 
-  while (storedPose.heading >= (2_pi) * okapi::radian) {
-    storedPose.heading -= 2_pi * okapi::radian;
+  while (storedPose.heading >= 360_deg) {
+    storedPose.heading -= 360_deg;
   }
   while (storedPose.heading < 0_rad) {
-    storedPose.heading += 2_pi * okapi::radian;
+    storedPose.heading += 360_deg;
   }
 
   lastLeftEnc = encL;
@@ -104,6 +108,20 @@ void Odometry::update() {
   poseMutex.take(TIMEOUT_MAX);
   currPose = storedPose;
   poseMutex.give();
+}
+
+okapi::QLength Odometry::getDistanceTo(okapi::QLength x, okapi::QLength y) {
+  Pose storedPose;
+  poseMutex.take(TIMEOUT_MAX);
+  storedPose = currPose;
+  poseMutex.give();
+
+  double x2 = x.convert(okapi::meter);
+  double y2 = y.convert(okapi::meter);
+  double x1 = storedPose.position.getX().convert(okapi::meter);
+  double y1 = storedPose.position.getY().convert(okapi::meter);
+  
+  return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)) * okapi::meter;
 }
 
 void Odometry::run() {
