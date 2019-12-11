@@ -10,12 +10,12 @@ okapi::QLength encoderWheelDiameter = 2.75_in;
 okapi::QLength encoderWidth = 10_in * (363.55/360.0);
 
 okapi::Motor frontRight(-17);
-okapi::Motor frontLeft(13);
-okapi::Motor backRight(-15);
-okapi::Motor backLeft(12);
+okapi::Motor frontLeft(15);
+okapi::Motor backRight(-14);
+okapi::Motor backLeft(1);
 
 okapi::Motor intakeRight(-20);
-okapi::Motor intakeLeft(1);
+okapi::Motor intakeLeft(12);
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
 okapi::Motor tilt(-18);
@@ -23,8 +23,8 @@ okapi::Motor tilt(-18);
 okapi::Motor lift(19);
 
 okapi::ADIEncoder leftEnc('A', 'B', true);
-okapi::ADIEncoder centerEnc('C', 'D');
-okapi::ADIEncoder rightEnc('G', 'H', true);
+okapi::ADIEncoder centerEnc('G', 'H', true);
+okapi::ADIEncoder rightEnc('C', 'D', true);
 motion::Odometry odometry(rightEnc, leftEnc, centerEnc, encoderWidth,
                           encoderWheelDiameter, 0_in);
 
@@ -41,14 +41,18 @@ void printController(void* p) {
   master.clear();
   while (true) {
     std::string printStr =
-        "A: " + std::to_string(odometry.getPose().heading.convert(okapi::degree));
+       "A: " + std::to_string(odometry.getPose().heading.convert(okapi::degree));
+    //std::string printStr = "C: " + std::to_string(centerEnc.get());
     master.setText(0, 0, printStr);
     pros::delay(51);
 
-    std::string encStr = "L: " + std::to_string(leftEnc.get());
-    master.setText(1, 0, encStr);
+    std::string xStr = "X: " + std::to_string(odometry.getPose().position.getX().convert(okapi::foot));
+    std::string encLStr = "L: " + std::to_string(leftEnc.get());
+    master.setText(1, 0, xStr);
     pros::delay(51);
-    master.setText(2, 0, "R: " + std::to_string(rightEnc.get()));
+    std::string yStr = "Y: " + std::to_string(odometry.getPose().position.getY().convert(okapi::foot));
+    std::string encRStr = "R: " + std::to_string(rightEnc.get());
+    master.setText(2, 0, yStr);
     pros::delay(51);
   }
 }

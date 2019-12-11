@@ -69,25 +69,32 @@ void Odometry::update() {
           (deltaHeading == 0 ? 0 : (r1 - r1 * std::cos(deltaHeading))));
 
   double encC = (centerEnc != nullptr) ? ticksToMeter(centerEnc->get()) : 0;
+  double dEncC = encC - lastMiddleEnc;
   double centerWidth = centerOffset.convert(okapi::meter);
 
-  double rC = deltaHeading == 0 ? 0 : encC / deltaHeading;
+  double rC = deltaHeading == 0 ? 0 : dEncC / deltaHeading;
 
   PositionVector centerPositionUpdate(
       okapi::meter *
           (deltaHeading == 0 ? 0 : (rC - rC * std::cos(deltaHeading))),
       okapi::meter *
-          (deltaHeading == 0 ? encC : (rC * std::sin(deltaHeading))));
+          (deltaHeading == 0 ? dEncC : (rC * std::sin(deltaHeading))));
   
-  centerPositionUpdate.rotateSelf(storedPose.heading + 90_deg); 
+  centerPositionUpdate.rotateSelf(storedPose.heading/* + 90_deg*/); 
   // remember to add vector from the center encoder to the center of the robot but without constantly adding when the robot isn't moving
   //PositionVector centerOffsetVector(std::cos(deltaHeading) * centerOffset, std::sin(deltaHeading) * centerOffset);
-  PositionVector centerOffsetVector(0_in, centerOffset);
-  if (deltaHeading != 0) {
-    positionUpdate.addSelf(centerOffsetVector);
-  }
+  //PositionVector centerOffsetVector(0_in, centerOffset);
+  // if (deltaHeading != 0) {
+  //   positionUpdate.addSelf(centerOffsetVector);
+  // }
+  PositionVector centerOffsetVector(centerOffset, 0_in);
+  centerPositionUpdate.subtractSelf(centerOffsetVector);
+  centerPositionUpdate.setSelf(PositionVector(positionUpdate.getX(),  // 😂
+                                        -positionUpdate.getY()));
+  centerOffsetVector.rotateSelf(deltaHeading * okapi::radian);
+  centerPositionUpdate.addSelf(centerOffsetVector);
 
-  storedPose.position.addSelf(centerPositionUpdate);
+  positionUpdate.addSelf(centerPositionUpdate);
 
   positionUpdate.rotateSelf(storedPose.heading);
   positionUpdate.setSelf(PositionVector(positionUpdate.getX(),  // 😂
@@ -104,6 +111,7 @@ void Odometry::update() {
 
   lastLeftEnc = encL;
   lastRightEnc = encR;
+  lastMiddleEnc = encC;
 
   poseMutex.take(TIMEOUT_MAX);
   currPose = storedPose;
