@@ -54,6 +54,15 @@ void printController(void* p) {
   okapi::Controller master;
   master.clear();
   while (true) {
+    Eigen::Vector4d u;
+    u << frontLeftUV.getActualVelocity(), frontRightUV.getActualVelocity(),
+        backRightUV.getActualVelocity(), backLeftUV.getActualVelocity();
+    Eigen::Vector3d rates = driveKinematics.fk(odometry.getStateVector(), u);
+
+    std::string angVelString = "AV: " + std::to_string(rates(2));
+    std::string xVel = "X: " + std::to_string(rates(0));
+    std::string yVel = "Y: " + std::to_string(rates(1));
+    
     std::string printStr =
         "A: " +
         std::to_string(odometry.getPose().heading.convert(okapi::degree));

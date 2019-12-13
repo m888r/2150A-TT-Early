@@ -77,21 +77,23 @@ void Odometry::update() {
           (deltaHeading == 0 ? 0 : (rC - rC * std::cos(deltaHeading))),
       okapi::meter *
           (deltaHeading == 0 ? dEncC : (rC * std::sin(deltaHeading))));
-  
-  // remember to add vector from the center encoder to the center of the robot but without constantly adding when the robot isn't moving
-  //PositionVector centerOffsetVector(std::cos(deltaHeading) * centerOffset, std::sin(deltaHeading) * centerOffset);
-  //PositionVector centerOffsetVector(0_in, centerOffset);
+
+  // remember to add vector from the center encoder to the center of the robot
+  // but without constantly adding when the robot isn't moving
+  // PositionVector centerOffsetVector(std::cos(deltaHeading) * centerOffset,
+  // std::sin(deltaHeading) * centerOffset); PositionVector
+  // centerOffsetVector(0_in, centerOffset);
   // if (deltaHeading != 0) {
   //   positionUpdate.addSelf(centerOffsetVector);
   // }
   PositionVector centerOffsetVector(centerOffset, 0_in);
   centerPositionUpdate.subtractSelf(centerOffsetVector);
   centerPositionUpdate.setSelf(PositionVector(positionUpdate.getX(),  // 😂
-                                        -positionUpdate.getY()));
+                                              -positionUpdate.getY()));
   centerOffsetVector.rotateSelf(deltaHeading * okapi::radian);
   centerPositionUpdate.addSelf(centerOffsetVector);
 
-  //centerPositionUpdate.rotateSelf(storedPose.heading/* + 90_deg*/); 
+  // centerPositionUpdate.rotateSelf(storedPose.heading/* + 90_deg*/);
   positionUpdate.addSelf(centerPositionUpdate);
 
   positionUpdate.rotateSelf(storedPose.heading);
@@ -126,7 +128,7 @@ okapi::QLength Odometry::getDistanceTo(okapi::QLength x, okapi::QLength y) {
   double y2 = y.convert(okapi::meter);
   double x1 = storedPose.position.getX().convert(okapi::meter);
   double y1 = storedPose.position.getY().convert(okapi::meter);
-  
+
   return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)) * okapi::meter;
 }
 
@@ -156,7 +158,9 @@ void Odometry::trampoline(void *instance) {
 Eigen::Vector3d Odometry::getStateVector() {
   Pose returnPose = currPose;
   auto position = currPose.position;
-  return Eigen::Vector3d(position.getX().convert(okapi::meter), position.getY().convert(okapi::meter), currPose.heading.convert(okapi::radian));
+  return Eigen::Vector3d(position.getX().convert(okapi::meter),
+                         position.getY().convert(okapi::meter),
+                         currPose.heading.convert(okapi::radian));
 }
 
 }  // namespace motion
