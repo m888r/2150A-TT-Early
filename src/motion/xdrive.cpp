@@ -30,7 +30,7 @@ double XDrive::maxYawRate() {
 
 Eigen::Vector3d XDrive::fk(Eigen::Vector3d x, Eigen::Vector4d u) {
   // if (velocityCapped) {
-  //   u = u.cwiseMin(-vMax).cwiseMax(vMax);
+  //   u = u.cwiseMax(-vMax).cwiseMin(vMax);
   // }
 
   double theta = x(2);
@@ -95,7 +95,7 @@ Eigen::Vector4d XDrive::ik(Eigen::Vector3d x, Eigen::Vector3d u) {
   Eigen::Vector4d result = A * B * C * u;
 
   if (velocityCapped) {
-    result = result.cwiseMin(-vMax).cwiseMax(vMax);
+    result = result.cwiseMax(-vMax).cwiseMin(vMax);
   }
 
   return result;
@@ -132,6 +132,24 @@ void XDrive::moveGlobal(Eigen::Vector3d x, Eigen::Vector3d u) {
   rightFront.moveVelocity(speeds(1));
   rightBack.moveVelocity(speeds(2));
   leftBack.moveVelocity(speeds(3));
+}
+
+void XDrive::stop() {
+  leftFront.moveVelocity(0);
+  rightFront.moveVelocity(0);
+  rightBack.moveVelocity(0);
+  leftBack.moveVelocity(0);
+}
+
+void XDrive::setBrakeMode(okapi::AbstractMotor::brakeMode mode) {
+  leftFront.setBrakeMode(mode);
+  rightFront.setBrakeMode(mode);
+  rightBack.setBrakeMode(mode);
+  leftBack.setBrakeMode(mode);
+}
+
+okapi::QLength XDrive::getChassisWidth() {
+  return b * okapi::meter;
 }
 
 }  // namespace motion

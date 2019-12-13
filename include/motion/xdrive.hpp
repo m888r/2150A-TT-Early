@@ -42,6 +42,11 @@ class XDrive {
    */
   void moveGlobal(Eigen::Vector3d x, Eigen::Vector3d u);
 
+  void stop();
+  void setBrakeMode(okapi::AbstractMotor::brakeMode mode);
+
+  okapi::QLength getChassisWidth();
+
  private:
   okapi::Motor leftFront;
   okapi::Motor rightFront;
