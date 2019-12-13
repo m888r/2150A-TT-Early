@@ -30,9 +30,7 @@ Odometry::Odometry(const okapi::ADIEncoder &leftEnc,
       lastPose(currPose) {}
 
 Pose Odometry::getPose() {
-  poseMutex.take(TIMEOUT_MAX);
   Pose returnPose = currPose;
-  poseMutex.give();
   return returnPose;
 }
 
@@ -80,7 +78,6 @@ void Odometry::update() {
       okapi::meter *
           (deltaHeading == 0 ? dEncC : (rC * std::sin(deltaHeading))));
   
-  centerPositionUpdate.rotateSelf(storedPose.heading/* + 90_deg*/); 
   // remember to add vector from the center encoder to the center of the robot but without constantly adding when the robot isn't moving
   //PositionVector centerOffsetVector(std::cos(deltaHeading) * centerOffset, std::sin(deltaHeading) * centerOffset);
   //PositionVector centerOffsetVector(0_in, centerOffset);
@@ -94,6 +91,7 @@ void Odometry::update() {
   centerOffsetVector.rotateSelf(deltaHeading * okapi::radian);
   centerPositionUpdate.addSelf(centerOffsetVector);
 
+  //centerPositionUpdate.rotateSelf(storedPose.heading/* + 90_deg*/); 
   positionUpdate.addSelf(centerPositionUpdate);
 
   positionUpdate.rotateSelf(storedPose.heading);
@@ -132,6 +130,18 @@ okapi::QLength Odometry::getDistanceTo(okapi::QLength x, okapi::QLength y) {
   return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)) * okapi::meter;
 }
 
+void Odometry::reset() {
+  leftEnc.reset();
+  rightEnc.reset();
+  if (centerEnc != nullptr) {
+    centerEnc->reset();
+  }
+  poseMutex.take(TIMEOUT_MAX);
+  currPose = Pose(0_in, 0_in, 0_deg);
+  lastPose = Pose(0_in, 0_in, 0_deg);
+  poseMutex.give();
+}
+
 void Odometry::run() {
   while (true) {
     update();
@@ -141,6 +151,12 @@ void Odometry::run() {
 
 void Odometry::trampoline(void *instance) {
   static_cast<Odometry *>(instance)->run();
+}
+
+Eigen::Vector3d Odometry::getStateVector() {
+  Pose returnPose = currPose;
+  auto position = currPose.position;
+  return Eigen::Vector3d(position.getX().convert(okapi::meter), position.getY().convert(okapi::meter), currPose.heading.convert(okapi::radian));
 }
 
 }  // namespace motion

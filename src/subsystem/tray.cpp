@@ -29,7 +29,7 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.0022, 0.0, 0.0, 0); // was 0.0017
+motion::PID trayPID(0.0022, 0.0, 0.0, 0);  // was 0.0017
 
 void init() {
   pros::Task trayTask(run, nullptr, "Tray");
@@ -43,6 +43,7 @@ void init() {
 void run(void* p) {
   motion::SCurveProfile profile(trayConstraints, 0);
   okapi::Timer timer;
+  okapi::Timer standbyTimer;
   timer.placeMark();
 
   bool motionProfileComplete = false;
@@ -59,7 +60,7 @@ void run(void* p) {
     switch (currMode) {
       case mode::placing: {
         // printf("%d: Entered placing\n", pros::millis());
-        int error = (placed) - robot::tilt.getPosition();
+        int error = (placed)-robot::tilt.getPosition();
         if (/*lastMode != mode::placing*/ !startedPlacing) {
           printf("%d: Entered start of place, ", pros::millis());
           startedPlacing = true;
@@ -115,6 +116,18 @@ void run(void* p) {
         if (abs(robot::tilt.getTargetPosition() - robot::tilt.getPosition()) <
             50) {
           nextMode = mode::holding;
+        }
+        break;
+      case mode::resetting:
+        robot::tilt.moveVelocity(-50);
+        if (lastMode != mode::resetting) {
+          standbyTimer.placeMark();
+        }
+        if (abs(robot::tilt.getActualVelocity()) < 1 &&
+            standbyTimer.getDtFromMark().convert(okapi::millisecond) > 70) {
+              robot::tilt.tarePosition();
+              robot::tilt.moveVoltage(0);
+              nextMode = mode::holding;
         }
         break;
       case mode::holding:

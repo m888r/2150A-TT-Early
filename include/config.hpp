@@ -1,6 +1,7 @@
 #pragma once
 
 #include "motion/odometry.hpp"
+#include "motion/xdrive.hpp"
 #include "okapi/api.hpp"
 
 namespace robot {
@@ -27,6 +28,7 @@ extern okapi::ADIEncoder centerEnc;
 extern motion::Odometry odometry;
 
 extern okapi::XDriveModel xDrive;
+extern motion::XDrive driveKinematics;
 
 extern okapi::QLength wheelDiameter;
 extern okapi::QLength encoderWheelDiameter;

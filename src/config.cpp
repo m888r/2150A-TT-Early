@@ -5,7 +5,7 @@
 
 namespace robot {
 using namespace okapi::literals;
-okapi::QLength wheelDiameter = 3.255_in * sqrt(2);
+okapi::QLength wheelDiameter = 3.25_in * sqrt(2);
 okapi::QLength encoderWheelDiameter = 2.75_in;
 okapi::QLength encoderWidth = 10_in * (363.55/360.0);
 
@@ -15,7 +15,7 @@ okapi::Motor backRight(-14);
 okapi::Motor backLeft(1);
 
 okapi::Motor intakeRight(-20);
-okapi::Motor intakeLeft(12);
+okapi::Motor intakeLeft(13);
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
 okapi::Motor tilt(-18);
@@ -23,10 +23,10 @@ okapi::Motor tilt(-18);
 okapi::Motor lift(19);
 
 okapi::ADIEncoder leftEnc('A', 'B', true);
-okapi::ADIEncoder centerEnc('G', 'H', true);
-okapi::ADIEncoder rightEnc('C', 'D', true);
+okapi::ADIEncoder centerEnc('C', 'D', true);
+okapi::ADIEncoder rightEnc('G', 'H', true);
 motion::Odometry odometry(rightEnc, leftEnc, centerEnc, encoderWidth,
-                          encoderWheelDiameter, 0_in);
+                          encoderWheelDiameter, 6.75_in);
 
 okapi::XDriveModel xDrive(std::make_shared<okapi::Motor>(frontLeft),
                           std::make_shared<okapi::Motor>(frontRight),
@@ -35,6 +35,8 @@ okapi::XDriveModel xDrive(std::make_shared<okapi::Motor>(frontLeft),
                           std::make_shared<okapi::ADIEncoder>(leftEnc),
                           std::make_shared<okapi::ADIEncoder>(rightEnc), 200,
                           12000);
+
+motion::XDrive driveKinematics(frontLeft, frontRight, backLeft, backRight, 0.86_mps, 13.5_in); // theoretical maxvel of each wheel is 0.86446157851 mps
 
 void printController(void* p) {
   okapi::Controller master;

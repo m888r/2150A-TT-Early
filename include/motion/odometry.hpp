@@ -4,6 +4,8 @@
 #include "api.h"
 #include "okapi/api.hpp"
 #include "structs.hpp"
+#include "Eigen/Core"
+#include "Eigen/MatrixFunctions"
 
 namespace motion {
 using namespace okapi::literals;
@@ -32,7 +34,11 @@ class Odometry {
 
   void update();
 
+  void reset();
+
   okapi::QLength getDistanceTo(okapi::QLength x, okapi::QLength y);
+
+  Eigen::Vector3d getStateVector();
 
  private:
   okapi::ADIEncoder leftEnc;

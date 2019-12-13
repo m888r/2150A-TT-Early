@@ -14,6 +14,8 @@ void initialize() {
   subsystem::intake::init();
   subsystem::tray::init();
   subsystem::rd4b::init();
+
+  robot::odometry.reset();
 }
 
 /**
@@ -51,6 +53,7 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
+  robot::odometry.reset();
   lcd::runAuton();
   //redCloseAuto();
   //blueCloseAuto();
@@ -81,7 +84,13 @@ void opcontrol() {
   subsystem::intake::manual();
 
   okapi::ControllerButton placeButton(okapi::ControllerDigital::up);
-  okapi::ControllerButton standbyButton(okapi::ControllerDigital::down);
+  okapi::ControllerButton standbyButton(okapi::ControllerDigital::left);
+
+  okapi::ControllerButton resetTrayButton(okapi::ControllerDigital::down);
+  okapi::ControllerButton defenseButton(okapi::ControllerDigital::B);
+
+  
+  bool defenseModeActive = false;
 
 	while (true) {
 		double strafeLeft = master.getAnalog(okapi::ControllerAnalog::leftX);
@@ -94,6 +103,10 @@ void opcontrol() {
     double turn = master.getAnalog(okapi::ControllerAnalog::rightX);
     int threshold = 0.05;
 
+    if (defenseButton.changedToPressed()) {
+      defenseModeActive = !defenseModeActive;
+    }
+
     if (fabs(strafeLeft) > threshold || fabs(strafeRight) > threshold || fabs(forwardLeft) > threshold || fabs(forwardRight) > threshold) {
       robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
@@ -102,7 +115,8 @@ void opcontrol() {
       robot::backRight.moveVoltage((forwardRight + strafeRight) * 12000.0);
       robot::backLeft.moveVoltage((forwardLeft - strafeLeft) * 12000.0);
     } else {
-      robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+      
+      robot::xDrive.setBrakeMode(defenseModeActive ? okapi::AbstractMotor::brakeMode::hold : okapi::AbstractMotor::brakeMode::coast);
 
       robot::frontRight.moveVelocity(0);
       robot::frontLeft.moveVelocity(0);
@@ -118,7 +132,9 @@ void opcontrol() {
       subsystem::tray::changeMode(subsystem::tray::mode::standby);
     }
 
-
+    if (resetTrayButton.changedToPressed()) {
+      subsystem::tray::changeMode(subsystem::tray::mode::resetting);
+    }
 
     pros::delay(10);
 	}
