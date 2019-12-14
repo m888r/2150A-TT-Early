@@ -13,29 +13,40 @@ void turnTo(okapi::QAngle angle) {
   auto su = okapi::SettledUtilFactory::create(0.7, 0.4, 200_ms);
   robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
 
-  auto angleRad = -angle.convert(okapi::radian);
+  auto angleRad = angle.convert(okapi::radian);
 
   motion::PID pid(0.027, 0.0001, 1.5);  // 0.027 0.0003 1.6
   pid.setMaxErrorToIntegrate(15);
   pid.setIntegralReset(true);
-  double degreeTarget = atan2(sin(angle.convert(okapi::radian)),
-                              cos(angle.convert(okapi::radian))) *
+  double degreeTarget = std::atan2(std::sin(angle.convert(okapi::radian)),
+                              std::cos(angle.convert(okapi::radian))) *
                         180.0 / 1_pi;
-  pid.setTarget(degreeTarget);
+  // while (angle >= 360_deg) {
+  //   angle -= 360_deg;
+  // }
+  // while (angle < 0_rad) {
+  //   angle += 360_deg;
+  // }
 
-  double current = robot::odometry.getPose().heading.convert(okapi::radian);
-  current = atan2(sin(current), cos(current)) * 180.0 / 1_pi;
+  pid.setTarget(0);
+
+  double current = robot::odometry.getPose().heading.convert(okapi::degree);
+  current = std::atan2(std::sin(current), std::cos(current)) * 180.0 / 1_pi;
 
   double error = degreeTarget - current;
+  error *= 1_pi / 180.0;
+  error = std::atan2(std::sin(error), std::cos(error));
 
-  while (!su.isSettled(pid.getError())) {
+  while (!su.isSettled(/*pid.getError()*/error)) {
     robot::odometry.update();
-    current = robot::odometry.getPose().heading.convert(okapi::radian);
-    current = atan2(sin(current), cos(current)) * 180.0 / 1_pi;
-    // error = (degreeTarget - current) * 1_pi / 180.0;
-    // error = atan2(sin(error), cos(error)) * 180.0 / 1_pi;
+    current = robot::odometry.getPose().heading.convert(okapi::degree);
+    // current = atan2(sin(current), cos(current)) * 180.0 / 1_pi;
+    error = (degreeTarget - current) * 1_pi / 180.0;
+    error = std::atan2(std::sin(error), std::cos(error)) * 180.0 / 1_pi;
 
-    double out = pid.calculate(current);
+    double out = pid.calculate(error);
+    //printf("Target: %1.2f, current: %1.2f, error: %1.2f, Power: %1.2f\n",
+    //       degreeTarget, current, error, out);
     robot::xDrive.driveVectorVoltage(0, out);
     pros::delay(10);
   }

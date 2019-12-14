@@ -80,12 +80,15 @@ void printController(void* p) {
         std::to_string(odometry.getPose().position.getX().convert(okapi::foot));
     std::string encLStr = "L: " + std::to_string(leftEnc.get());
     master.setText(1, 0, xStr);
+    //printf((xStr + ", ").c_str());
     pros::delay(51);
     std::string yStr =
         "Y: " +
         std::to_string(odometry.getPose().position.getY().convert(okapi::foot));
     std::string encRStr = "R: " + std::to_string(rightEnc.get());
     master.setText(2, 0, yStr);
+    //printf((yStr + "\n").c_str());
+
     pros::delay(51);
   }
 }

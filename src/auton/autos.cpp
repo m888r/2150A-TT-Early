@@ -13,27 +13,27 @@ using namespace robot;
 using namespace structs;
 
 void test() {
-  odometry.reset();
-  pros::delay(50);
-  Async({
-    drive::moveTo(Pose(1_ft, 1_ft, 0_deg), std::nullopt, std::nullopt,
-                  std::nullopt, std::nullopt);
-  }) 
-  while (!drive::isAtTarget()) { 
-    printf("Still Waiting\n");
-    pros::delay(10); 
-  }
-  drive::stop();
-  printf("Stopped\n");
-  Async({
-    drive::moveTo(Pose(0_ft, 0_ft, 0_deg));
-  })
-  while (!drive::isAtTarget()) {
-    printf("Waiting for second movement");
-    pros::delay(10);
-  }
-  printf("Finished second move\n");
-  drive::stop();
+  // odometry.reset();
+  // pros::delay(50);
+  // Async({
+  //   drive::moveTo(Pose(1_ft, 1_ft, 0_deg), std::nullopt, std::nullopt,
+  //                 std::nullopt, std::nullopt);
+  // }) while (!drive::isAtTarget()) {
+  //   printf("Still Waiting\n");
+  //   pros::delay(10);
+  // }
+  // drive::stop();
+  // printf("Stopped\n");
+  // Async({ drive::moveTo(Pose(0_ft, 0_ft, 0_deg)); }) while (
+  //     !drive::isAtTarget()) {
+  //   printf("Waiting for second movement");
+  //   pros::delay(10);
+  // }
+  // printf("Finished second move\n");
+  // drive::stop();
+  drive::turnTo(90_deg);
+  drive::turnTo(0_deg);
+  drive::turnTo(110_deg);
 }
 
 // blueclose
@@ -42,7 +42,7 @@ void blueClosePaths() {}
 // auton for blue side closer to double zone
 void blueCloseAuto() {
   robot::lift.tarePosition();
-  robot::odometry.setPose({0_in, 0_in, 0_deg});
+  odometry.reset();
   intake::in();
   drive::moveDistanceProfile(0.1);
   Async({
@@ -51,9 +51,18 @@ void blueCloseAuto() {
     pros::delay(400);
     rd4b::moveTarget(0);
   }) pros::delay(1300);
-  rd4b::moveTarget(1280);
+  rd4b::moveTarget(2000); // was 1280
   pros::delay(500);
-  drive::moveDistanceProfile(0.65);
+  // drive::moveDistanceProfile(0.65);
+  Async({
+    drive::moveTo(Pose(2.25_ft, 0_ft, 0_deg), std::nullopt, std::nullopt,
+                  std::nullopt, std::nullopt);
+  }) 
+  while (!drive::isAtTarget()) { 
+    //printf("Still Waiting\n");
+    pros::delay(10); 
+  }
+  drive::stop();
   rd4b::moveTarget(0);
   pros::delay(50);
   okapi::Timer timer;
@@ -62,14 +71,25 @@ void blueCloseAuto() {
          timer.getDtFromMark() < 2000_ms) {
     pros::delay(10);
   }
+  tray::changeMode(tray::mode::prepared);
   pros::delay(350);
-  okapi::QAngle placeAngle = 125_deg;
+  okapi::QAngle placeAngle = -110_deg;
   drive::turnTo(placeAngle);
-  robot::odometry.setPose({0_in, 0_in, 0_deg});
-  pros::delay(10);
-  drive::moveDistanceProfile(1.02);
+
+  Async({
+    drive::moveTo(Pose(0_ft, -2_ft, -110_deg), std::nullopt, std::nullopt,
+                  std::nullopt, std::nullopt);
+  }) 
+  while (!drive::isAtTarget()) { 
+    printf("Still Waiting\n");
+    pros::delay(10); 
+  }
+  drive::stop();
+
   tray::changeMode(tray::mode::placing);
   pros::delay(2000);
+  rd4b::moveTarget(45);
+
   drive::moveDistanceProfile(-0.5, 0_deg, 0.5);
   tray::changeMode(tray::mode::standby);
   pros::delay(1000);
@@ -100,7 +120,7 @@ void redClosePaths() {}
 
 void redCloseAuto() {
   robot::lift.tarePosition();
-  robot::odometry.setPose({0_in, 0_in, 0_deg});
+  odometry.reset();
   intake::in();
   drive::moveDistanceProfile(0.1);
   Async({
@@ -109,9 +129,18 @@ void redCloseAuto() {
     pros::delay(400);
     rd4b::moveTarget(0);
   }) pros::delay(1300);
-  rd4b::moveTarget(1280);
+  rd4b::moveTarget(2000); // was 1280
   pros::delay(500);
-  drive::moveDistanceProfile(0.65);
+  // drive::moveDistanceProfile(0.65);
+  Async({
+    drive::moveTo(Pose(2.25_ft, 0_ft, 0_deg), std::nullopt, std::nullopt,
+                  std::nullopt, std::nullopt);
+  }) 
+  while (!drive::isAtTarget()) { 
+    //printf("Still Waiting\n");
+    pros::delay(10); 
+  }
+  drive::stop();
   rd4b::moveTarget(0);
   pros::delay(50);
   okapi::Timer timer;
@@ -120,14 +149,26 @@ void redCloseAuto() {
          timer.getDtFromMark() < 2000_ms) {
     pros::delay(10);
   }
+  tray::changeMode(tray::mode::prepared);
   pros::delay(350);
-  okapi::QAngle placeAngle = -125_deg;
+  okapi::QAngle placeAngle = 110_deg;
   drive::turnTo(placeAngle);
-  robot::odometry.setPose({0_in, 0_in, 0_deg});
-  pros::delay(10);
-  drive::moveDistanceProfile(1.02);
+
+  Async({
+    drive::moveTo(Pose(0_ft, 2.3_ft, 110_deg), std::nullopt, std::nullopt,
+                  std::nullopt, std::nullopt);
+  })
+  pros::delay(200);
+  while (!drive::isAtTarget()) { 
+    printf("Still Waiting\n");
+    pros::delay(10); 
+  }
+  drive::stop();
+
   tray::changeMode(tray::mode::placing);
   pros::delay(2000);
+  rd4b::moveTarget(45);
+
   drive::moveDistanceProfile(-0.5, 0_deg, 0.5);
   tray::changeMode(tray::mode::standby);
   pros::delay(1000);

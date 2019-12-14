@@ -89,7 +89,7 @@ void Odometry::update() {
   PositionVector centerOffsetVector(centerOffset, 0_in);
   centerPositionUpdate.subtractSelf(centerOffsetVector);
   centerPositionUpdate.setSelf(PositionVector(centerPositionUpdate.getX(),  // 😂
-                                              -centerPositionUpdate.getY()));
+                                              centerPositionUpdate.getY()));
   centerOffsetVector.rotateSelf(deltaHeading * okapi::radian);
   centerPositionUpdate.addSelf(centerOffsetVector);
 
@@ -99,7 +99,7 @@ void Odometry::update() {
 
   positionUpdate.rotateSelf(storedPose.heading);
   positionUpdate.setSelf(PositionVector(positionUpdate.getX(),  // 😂
-                                        -positionUpdate.getY()));
+                                        positionUpdate.getY()));
   storedPose.position.addSelf(positionUpdate);
   storedPose.turn(okapi::radian * deltaHeading);
 

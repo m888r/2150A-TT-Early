@@ -3,13 +3,13 @@
 namespace subsystem {
 namespace drive {
 
-PIDGains defaultStraightGains(2.0, 0, 0);
-PIDGains defaultTurnGains(1.0, 0, 0);
+PIDGains defaultStraightGains(2.3, 0, 0);
+PIDGains defaultTurnGains(0.5, 0, 0);
 // maximum omega possible is (3.25" * 0.0254 * pi * (200/60)) / (chassisWidth /
 // 2)
 okapi::QAngularSpeed defaultOmega =
-    0.7 * okapi::radps;  // 0.128 maxfor 13.5"? < nah check config.cpp
-okapi::QAngle defaultPIDThreshold = 5_deg;
+    0.8 * okapi::radps;  // 0.128 maxfor 13.5"? < nah check config.cpp
+okapi::QAngle defaultPIDThreshold = 12_deg;
 bool enabled = false;
 bool atTarget = false;
 okapi::QAngle turnSettled = 2_deg;      // 3 degrees
@@ -62,10 +62,11 @@ void moveTo(Pose targetPose,
 
     double currentAngle = currPose.heading.convert(okapi::radian);
     double currentAngleNorm =
-        std::atan2(std::sin(targetAngle), std::cos(targetAngle));
+        std::atan2(std::sin(currentAngle), std::cos(currentAngle));
 
     double error = targetAngleNorm - currentAngleNorm;
     error = std::atan2(std::sin(error), std::cos(error));
+    //printf("Error: %1.2f, ", error);
 
     double angularVelocity;
     if (fabs(error) > errorToPID) {
@@ -81,7 +82,8 @@ void moveTo(Pose targetPose,
                       currentAngle);
     Eigen::Vector3d u(-xPower, -yPower, angularVelocity);
 
-    //printf("Linear Power: %1.2f, Angular Vel: %1.2f, Ang Error: %1.2f\n", power, angularVelocity, error);
+    //printf("Error: %1.2f, target: %1.2f, current: %1.2f", error, targetAngleNorm, currentAngleNorm);
+    printf("Linear Power: %1.2f, Angular Vel: %1.2f, Ang Error: %1.2f\n", error, power, angularVelocity, error);
     driveKinematics.moveGlobal(x, u);
 
     if (fabs(error) <= turnSettled.convert(okapi::radian) &&

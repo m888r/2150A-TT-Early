@@ -130,6 +130,9 @@ void run(void* p) {
               nextMode = mode::holding;
         }
         break;
+      case mode::prepared:
+        robot::tilt.moveAbsolute(intakeIntersect, 200);
+        break;
       case mode::holding:
         if (!pros::competition::is_autonomous()) {
           subsystem::intake::manual();
