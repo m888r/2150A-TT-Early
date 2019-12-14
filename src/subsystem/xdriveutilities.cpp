@@ -3,7 +3,15 @@
 namespace subsystem {
 namespace drive {
 
-bool atTarget;
+PIDGains defaultStraightGains(2.0, 0, 0);
+PIDGains defaultTurnGains(1.0, 0, 0);
+// maximum omega possible is (3.25" * 0.0254 * pi * (200/60)) / (chassisWidth /
+// 2)
+okapi::QAngularSpeed defaultOmega =
+    0.7 * okapi::radps;  // 0.128 maxfor 13.5"? < nah check config.cpp
+okapi::QAngle defaultPIDThreshold = 5_deg;
+bool enabled = false;
+bool atTarget = false;
 okapi::QAngle turnSettled = 2_deg;      // 3 degrees
 okapi::QLength distanceSettled = 3_cm;  // 5 cm
 
@@ -22,6 +30,8 @@ void moveTo(Pose targetPose,
   double errorToPID = defaultPIDThreshold.convert(okapi::radian);
 
   PID straightPID(straight.kP, straight.kI, straight.kD);
+  PID xPID(straight.kP, straight.kI, straight.kD);
+  PID yPID(straight.kP, straight.kI, straight.kD);
   PID turnPID(turn.kP, turn.kI, turn.kD);
 
   PositionVector targetPosition = targetPose.position;
@@ -38,6 +48,13 @@ void moveTo(Pose targetPose,
         odometry.getDistanceTo(targetPosition.getX(), targetPosition.getY())
             .convert(okapi::meter);
     double power = straightPID.calculate(linearDistance);
+    xPID.setTarget(targetPosition.getX().convert(okapi::meter));
+    yPID.setTarget(targetPosition.getY().convert(okapi::meter));
+
+    double xPower =
+        xPID.calculate(currPose.position.getX().convert(okapi::meter));
+    double yPower =
+        yPID.calculate(currPose.position.getY().convert(okapi::meter));
 
     double targetAngle = targetPose.heading.convert(okapi::radian);
     double targetAngleNorm =
@@ -62,14 +79,17 @@ void moveTo(Pose targetPose,
     Eigen::Vector3d x(currPose.position.getX().convert(okapi::meter),
                       currPose.position.getY().convert(okapi::meter),
                       currentAngle);
-    Eigen::Vector3d u(power * std::cos(currentAngle),
-                      power * std::sin(currentAngle), angularVelocity);
+    Eigen::Vector3d u(-xPower, -yPower, angularVelocity);
 
+    //printf("Linear Power: %1.2f, Angular Vel: %1.2f, Ang Error: %1.2f\n", power, angularVelocity, error);
     driveKinematics.moveGlobal(x, u);
 
     if (fabs(error) <= turnSettled.convert(okapi::radian) &&
         linearDistance <= distanceSettled.convert(okapi::meter)) {
-      stop();
+          //printf("IS AT TARGET RN");
+      atTarget = true;
+    } else {
+      atTarget = false;
     }
 
     pros::delay(10);

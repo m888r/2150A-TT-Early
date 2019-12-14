@@ -124,7 +124,7 @@ void run(void* p) {
           standbyTimer.placeMark();
         }
         if (abs(robot::tilt.getActualVelocity()) < 1 &&
-            standbyTimer.getDtFromMark().convert(okapi::millisecond) > 70) {
+            standbyTimer.getDtFromMark().convert(okapi::millisecond) > 100) {
               robot::tilt.tarePosition();
               robot::tilt.moveVoltage(0);
               nextMode = mode::holding;

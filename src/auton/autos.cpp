@@ -5,9 +5,36 @@
 #include "subsystem/intake.hpp"
 #include "subsystem/rd4b.hpp"
 #include "subsystem/tray.hpp"
+#include "subsystem/xdriveutilities.hpp"
 
 using namespace okapi::literals;
 using namespace subsystem;
+using namespace robot;
+using namespace structs;
+
+void test() {
+  odometry.reset();
+  pros::delay(50);
+  Async({
+    drive::moveTo(Pose(1_ft, 1_ft, 0_deg), std::nullopt, std::nullopt,
+                  std::nullopt, std::nullopt);
+  }) 
+  while (!drive::isAtTarget()) { 
+    printf("Still Waiting\n");
+    pros::delay(10); 
+  }
+  drive::stop();
+  printf("Stopped\n");
+  Async({
+    drive::moveTo(Pose(0_ft, 0_ft, 0_deg));
+  })
+  while (!drive::isAtTarget()) {
+    printf("Waiting for second movement");
+    pros::delay(10);
+  }
+  printf("Finished second move\n");
+  drive::stop();
+}
 
 // blueclose
 void blueClosePaths() {}
@@ -23,8 +50,7 @@ void blueCloseAuto() {
     rd4b::moveTarget(300);
     pros::delay(400);
     rd4b::moveTarget(0);
-  })
-  pros::delay(1300);
+  }) pros::delay(1300);
   rd4b::moveTarget(1280);
   pros::delay(500);
   drive::moveDistanceProfile(0.65);
@@ -47,7 +73,6 @@ void blueCloseAuto() {
   drive::moveDistanceProfile(-0.5, 0_deg, 0.5);
   tray::changeMode(tray::mode::standby);
   pros::delay(1000);
-
 }
 
 // bluefar
@@ -63,8 +88,7 @@ void blueFarAuto() {
     rd4b::moveTarget(300);
     pros::delay(400);
     rd4b::moveTarget(0);
-  })
-  pros::delay(1300);
+  }) pros::delay(1300);
   intake::free();
   drive::moveDistanceProfile(0.65, 0_deg, 0.7);
   intake::out();
@@ -84,8 +108,7 @@ void redCloseAuto() {
     rd4b::moveTarget(300);
     pros::delay(400);
     rd4b::moveTarget(0);
-  })
-  pros::delay(1300);
+  }) pros::delay(1300);
   rd4b::moveTarget(1280);
   pros::delay(500);
   drive::moveDistanceProfile(0.65);
@@ -123,8 +146,7 @@ void redFarAuto() {
     rd4b::moveTarget(300);
     pros::delay(400);
     rd4b::moveTarget(0);
-  })
-  pros::delay(1300);
+  }) pros::delay(1300);
   drive::moveDistanceProfile(0.65, 0_deg, 0.7);
   intake::out();
   pros::delay(100);

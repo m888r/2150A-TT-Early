@@ -1,6 +1,8 @@
 #ifndef _AUTOS_HPP_
 #define _AUTOS_HPP_
 
+void test();
+
 void blueCloseAuto();
 
 void blueClosePaths();

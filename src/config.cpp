@@ -7,11 +7,11 @@ namespace robot {
 using namespace okapi::literals;
 okapi::QLength wheelDiameter = 3.25_in * sqrt(2);
 okapi::QLength encoderWheelDiameter = 2.75_in;
-okapi::QLength encoderWidth = 10_in * (363.55 / 360.0);
+okapi::QLength encoderWidth = 10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8/90.0) * (90.5 / 89.3);
 
-const int frontRightPort = 17;
-const int frontLeftPort = 15;
-const int backRightPort = 14;
+const int frontRightPort = 20;
+const int frontLeftPort = 14;
+const int backRightPort = 15;
 const int backLeftPort = 1;
 
 okapi::Motor frontRight(-frontRightPort);
@@ -19,21 +19,23 @@ okapi::Motor frontLeft(frontLeftPort);
 okapi::Motor backRight(-backRightPort);
 okapi::Motor backLeft(backLeftPort);
 
-okapi::Motor frontLeftUV(frontLeftPort);
-okapi::Motor frontRightUV(frontRightPort);
-okapi::Motor backLeftUV(backLeftPort);
-okapi::Motor backRightUV(backRightPort);
+okapi::Motor frontLeftUV(-frontLeftPort);
+okapi::Motor frontRightUV(-frontRightPort);
+okapi::Motor backLeftUV(-backLeftPort);
+okapi::Motor backRightUV(-backRightPort);
 
-okapi::Motor intakeRight(-20);
+okapi::Motor intakeRight(-19);
 okapi::Motor intakeLeft(13);
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
-okapi::Motor tilt(-18);
+okapi::Motor tilt(-17);
 
-okapi::Motor lift(19);
+okapi::Motor lift(18);
+
+// IMU port 16
 
 okapi::ADIEncoder leftEnc('A', 'B', true);
-okapi::ADIEncoder centerEnc('C', 'D', true);
+okapi::ADIEncoder centerEnc('C', 'D');
 okapi::ADIEncoder rightEnc('G', 'H', true);
 motion::Odometry odometry(rightEnc, leftEnc, centerEnc, encoderWidth,
                           encoderWheelDiameter, 6.75_in);
@@ -48,15 +50,18 @@ okapi::XDriveModel xDrive(std::make_shared<okapi::Motor>(frontLeft),
 
 motion::XDrive driveKinematics(
     frontLeftUV, frontRightUV, backLeftUV, backRightUV, 0.86_mps,
-    13.5_in);  // theoretical maxvel of each wheel is 0.86446157851 mps
+    16.3_in);  // theoretical maxvel of each wheel is 0.86446157851 mps
 
 void printController(void* p) {
   okapi::Controller master;
   master.clear();
   while (true) {
     Eigen::Vector4d u;
+    // seems like max angvel is 2.2 radps
+    // but max linear vel seems like 0.95 mps which is strange
     u << frontLeftUV.getActualVelocity(), frontRightUV.getActualVelocity(),
         backRightUV.getActualVelocity(), backLeftUV.getActualVelocity();
+    u = driveKinematics.angularWheelSpeedToLinear(3.25_in, u);
     Eigen::Vector3d rates = driveKinematics.fk(odometry.getStateVector(), u);
 
     std::string angVelString = "AV: " + std::to_string(rates(2));
@@ -66,7 +71,7 @@ void printController(void* p) {
     std::string printStr =
         "A: " +
         std::to_string(odometry.getPose().heading.convert(okapi::degree));
-    // std::string printStr = "C: " + std::to_string(centerEnc.get());
+    //std::string printStr = "C: " + std::to_string(centerEnc.get());
     master.setText(0, 0, printStr);
     pros::delay(51);
 

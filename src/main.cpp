@@ -54,7 +54,11 @@ void competition_initialize() {
  */
 void autonomous() {
   robot::odometry.reset();
-  lcd::runAuton();
+  test();
+
+  //lcd::runAuton();
+
+
   //redCloseAuto();
   //blueCloseAuto();
   //blueFarAuto();

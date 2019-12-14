@@ -19,7 +19,9 @@ void Lift::run() {
         liftMtrs_->moveVoltage(0);
         break;
       case State::directcontrol:
-        liftMtrs_->moveVoltage((upBtn.isPressed() * 12000) - (upBtn.isPressed() * 12000));
+        //liftMtrs_->moveVoltage((upBtn.isPressed() * 12000) - (upBtn.isPressed() * 12000));
+        liftMtrs_->moveVelocity((upBtn.isPressed() * 200) - (upBtn.isPressed() * 200));
+
         break;
       case State::targeting:
         // move to targets[currTarget]

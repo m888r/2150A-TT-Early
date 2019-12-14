@@ -58,12 +58,14 @@ void run(void* p) {
     switch (currState) {
       case state::manual:
       {
-        double speed = 12000.0;
+        //double speed = 12000.0;
+        double speed = 200;
         if (robot::lift.getPosition() > rd4b::targets::upThreshold) {
-          speed = 6000.0;
+          //speed = 6000.0;
+          speed = 100;
         }
         if (intake.isPressed() || outtake.isPressed()) {
-          robot::intakeGroup.moveVoltage(
+          robot::intakeGroup.moveVelocity(
               (intake.isPressed() - outtake.isPressed()) * speed);
         } else {
           robot::intakeGroup.setBrakeMode(

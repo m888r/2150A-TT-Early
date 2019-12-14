@@ -56,7 +56,7 @@ void Odometry::update() {
   double dEncR = encR - lastRightEnc;
   double avgEnc = (dEncL + dEncR) / 2.0;
 
-  double deltaHeading = (dEncR - dEncL) / chassisWidth.convert(okapi::meter);
+  double deltaHeading = (dEncL - dEncR) / chassisWidth.convert(okapi::meter);
 
   double r1 = deltaHeading == 0 ? 0 : avgEnc / deltaHeading;
 
@@ -88,13 +88,14 @@ void Odometry::update() {
   // }
   PositionVector centerOffsetVector(centerOffset, 0_in);
   centerPositionUpdate.subtractSelf(centerOffsetVector);
-  centerPositionUpdate.setSelf(PositionVector(positionUpdate.getX(),  // 😂
-                                              -positionUpdate.getY()));
+  centerPositionUpdate.setSelf(PositionVector(centerPositionUpdate.getX(),  // 😂
+                                              -centerPositionUpdate.getY()));
   centerOffsetVector.rotateSelf(deltaHeading * okapi::radian);
   centerPositionUpdate.addSelf(centerOffsetVector);
 
   // centerPositionUpdate.rotateSelf(storedPose.heading/* + 90_deg*/);
   positionUpdate.addSelf(centerPositionUpdate);
+  
 
   positionUpdate.rotateSelf(storedPose.heading);
   positionUpdate.setSelf(PositionVector(positionUpdate.getX(),  // 😂
