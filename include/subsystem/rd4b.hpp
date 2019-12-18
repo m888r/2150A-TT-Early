@@ -19,7 +19,7 @@ void init();
 void run(void* p);
 void moveTargetMotionProfile(double target);
 void moveTargetPID(double target);
-void moveTarget(int target);
+void moveTarget(int target, int desiredSpeed = 200);
 void changeState(state state);
 
 void waitUntilSettled();

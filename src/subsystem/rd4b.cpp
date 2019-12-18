@@ -8,7 +8,7 @@ okapi::ControllerButton down(okapi::ControllerDigital::L2);
 int currTarget = 0;
 state currState = state::holding;
 state lastState = currState;
-
+int speed = 200;
 pros::Mutex stateMutex;
 
 void init() {
@@ -35,7 +35,7 @@ void run(void* p) {
         robot::lift.moveVelocity(0);
         break;
       case state::targeting:
-        robot::lift.moveAbsolute(currTarget, 200);
+        robot::lift.moveAbsolute(currTarget, speed);
         if (abs(robot::lift.getTargetPosition() - robot::lift.getPosition()) <
             25) {
           stateMutex.take(TIMEOUT_MAX);
@@ -73,11 +73,12 @@ void run(void* p) {
   }
 }
 
-void moveTarget(int target) {
+void moveTarget(int target, int desiredSpeed) {
   stateMutex.take(TIMEOUT_MAX);
   currState = state::targeting;
   stateMutex.give();
   currTarget = target;
+  speed = desiredSpeed;
 }
 
 void changeState(state state) {

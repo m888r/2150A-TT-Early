@@ -53,13 +53,13 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-  robot::odometry.reset();
+  //robot::odometry.reset();
   //test();
 
-  //lcd::runAuton();
+  lcd::runAuton();
 
 
-  redCloseAuto();
+  //redCloseAuto();
   //blueCloseAuto();
   //blueFarAuto();
   //redFarAuto();

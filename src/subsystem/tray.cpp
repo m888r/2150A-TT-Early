@@ -29,7 +29,7 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.0022, 0.0, 0.0, 0);  // was 0.0017
+motion::PID trayPID(0.00195, 0.0, 0.0, 0);  // was 0.0022
 
 void init() {
   pros::Task trayTask(run, nullptr, "Tray");

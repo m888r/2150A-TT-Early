@@ -4,7 +4,7 @@ namespace subsystem {
 namespace drive {
 
 PIDGains defaultStraightGains(2.3, 0, 0);
-PIDGains defaultTurnGains(0.5, 0, 0);
+PIDGains defaultTurnGains(0.6, 0, 0);
 // maximum omega possible is (3.25" * 0.0254 * pi * (200/60)) / (chassisWidth /
 // 2)
 okapi::QAngularSpeed defaultOmega =
