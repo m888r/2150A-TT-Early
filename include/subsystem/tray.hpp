@@ -14,15 +14,16 @@ namespace tray {
 
 //using namespace okapi;
 enum targets {
-  placed = 1335, // 1320 fully vertical
-  intakeIntersect = 250,
+  placed = 2150, // 1320 fully vertical
+  intakeIntersect = 952,
+  balancedCoM = 500,
   normal = 0,
-  hightower = 30
+  hightower = 42
 };
 
 int getTarget(targets targ);
 
-enum class mode { placing, standby, hightower, holding, resetting, prepared};
+enum class mode { placing, standby, hightower, holding, resetting, prepared, spinnable};
 extern mode currMode;
 extern mode lastMode;
 

@@ -42,6 +42,11 @@ class XDrive {
    */
   void moveGlobal(Eigen::Vector3d x, Eigen::Vector3d u);
 
+  /**
+   * @param x state vector (ẋ, ẏ, w)
+   */
+  void moveGlobalVoltage(Eigen::Vector3d x, Eigen::Vector3d u);
+
   void stop();
   void setBrakeMode(okapi::AbstractMotor::brakeMode mode);
 

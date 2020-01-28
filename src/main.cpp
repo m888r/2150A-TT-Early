@@ -56,10 +56,10 @@ void autonomous() {
   //robot::odometry.reset();
   //test();
 
-  lcd::runAuton();
+  //lcd::runAuton();
 
 
-  //redCloseAuto();
+  redCloseAuto();
   //blueCloseAuto();
   //blueFarAuto();
   //redFarAuto();
@@ -85,7 +85,10 @@ void opcontrol() {
 
   subsystem::rd4b::changeState(subsystem::rd4b::state::manual);
   robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-  subsystem::intake::manual();
+  
+  /// REMEMBER TO CHANGE TO MANUAL
+  subsystem::intake::changeState(subsystem::intake::state::manual);
+  robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
 
   okapi::ControllerButton placeButton(okapi::ControllerDigital::up);
   okapi::ControllerButton standbyButton(okapi::ControllerDigital::left);
@@ -93,8 +96,11 @@ void opcontrol() {
   okapi::ControllerButton resetTrayButton(okapi::ControllerDigital::down);
   okapi::ControllerButton defenseButton(okapi::ControllerDigital::B);
 
+
+  okapi::ControllerButton motorTestBtn(okapi::ControllerDigital::A);
   
   bool defenseModeActive = false;
+  bool placingModeActive = false;
 
 	while (true) {
 		double strafeLeft = master.getAnalog(okapi::ControllerAnalog::leftX);
@@ -105,7 +111,7 @@ void opcontrol() {
     double strafe = master.getAnalog(okapi::ControllerAnalog::leftX);
     double forward = master.getAnalog(okapi::ControllerAnalog::leftY);
     double turn = master.getAnalog(okapi::ControllerAnalog::rightX);
-    int threshold = 0.05;
+    int threshold = 0.09;
 
     if (defenseButton.changedToPressed()) {
       defenseModeActive = !defenseModeActive;
@@ -123,20 +129,46 @@ void opcontrol() {
       robot::xDrive.setBrakeMode(defenseModeActive ? okapi::AbstractMotor::brakeMode::hold : okapi::AbstractMotor::brakeMode::coast);
 
       robot::frontRight.moveVelocity(0);
+      // if (motorTestBtn.isPressed()) {
+      //   robot::frontRight.moveVoltage(12000);
+      // } else {
+      //   robot::frontRight.moveVoltage(0);
+      // }
+
       robot::frontLeft.moveVelocity(0);
       robot::backRight.moveVelocity(0);
       robot::backLeft.moveVelocity(0);
     }
 
+    // if (motorTestBtn.isPressed()) {
+    //   robot::intakeRight.moveVoltage(12000);
+    // } else {
+    //   robot::intakeRight.moveVoltage(0);
+    // }
+
+    if (placingModeActive) {
+      if (placeButton.isPressed()) {
+        subsystem::tray::changeMode(subsystem::tray::mode::placing);
+      } else {
+        subsystem::tray::changeMode(subsystem::tray::mode::holding);
+      }
+    }
+
     if (placeButton.changedToPressed()) {
-      subsystem::tray::changeMode(subsystem::tray::mode::placing);
+      if (subsystem::tray::currMode == subsystem::tray::mode::prepared || placingModeActive) {
+        placingModeActive = true;
+      } else {
+        subsystem::tray::changeMode(subsystem::tray::mode::prepared);
+      }
     }
     
     if (standbyButton.changedToPressed()) {
+      placingModeActive = false;
       subsystem::tray::changeMode(subsystem::tray::mode::standby);
     }
 
     if (resetTrayButton.changedToPressed()) {
+      placingModeActive = false;
       subsystem::tray::changeMode(subsystem::tray::mode::resetting);
     }
 

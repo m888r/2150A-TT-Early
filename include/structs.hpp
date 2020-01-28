@@ -50,7 +50,7 @@ class PositionVector {
   okapi::QLength getMagSquared();
 };
 
-// TODO make this a class and encapsulate me daddy
+// TODO make this a class and encapsulate me
 struct Pose {
   okapi::QAngle heading;
   PositionVector position;

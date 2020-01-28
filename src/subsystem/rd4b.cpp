@@ -44,14 +44,18 @@ void run(void* p) {
         }
         break;
       case state::resetting:
-        if (!startedReset) {
+        if (!startedReset && abs(robot::lift.getActualVelocity()) < 1) {
           timer.placeMark();
           startedReset = true;
+        } else if (!(abs(robot::lift.getActualVelocity()) < 1)) {
+          timer.placeMark();
+          startedReset = false;
         }
+
         robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-        robot::lift.moveVoltage(-3000);
-        if (robot::lift.isStopped() &&
-            timer.getDtFromMark().convert(okapi::millisecond) > 200) {
+        robot::lift.moveVoltage(-12000);
+        if (abs(robot::tilt.getActualVelocity()) < 1 &&
+            timer.getDtFromMark().convert(okapi::millisecond) > 100) {
           robot::lift.moveVelocity(0);
           robot::lift.tarePosition();
           stateMutex.take(TIMEOUT_MAX);

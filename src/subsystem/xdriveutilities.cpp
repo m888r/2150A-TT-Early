@@ -3,8 +3,8 @@
 namespace subsystem {
 namespace drive {
 
-PIDGains defaultStraightGains(2.3, 0, 0);
-PIDGains defaultTurnGains(0.6, 0, 0);
+PIDGains defaultStraightGains(4.05, 0, 0);  // vel 2.3, volt: was 3.8
+PIDGains defaultTurnGains(1.0, 0, 0);      // vel 0.6
 // maximum omega possible is (3.25" * 0.0254 * pi * (200/60)) / (chassisWidth /
 // 2)
 okapi::QAngularSpeed defaultOmega =
@@ -12,10 +12,11 @@ okapi::QAngularSpeed defaultOmega =
 okapi::QAngle defaultPIDThreshold = 12_deg;
 bool enabled = false;
 bool atTarget = false;
-okapi::QAngle turnSettled = 2_deg;      // 3 degrees
-okapi::QLength distanceSettled = 3_cm;  // 5 cm
+okapi::QAngle defaultTurnSettled = 2_deg;      // 3 degrees
+okapi::QLength defaultDistanceSettled = 1.18_in;  // 5 cm
 
-void moveTo(Pose targetPose,
+void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
+            std::optional<okapi::QAngle> turnSettle,
             std::optional<okapi::QAngularSpeed> angularVelocityCap,
             std::optional<okapi::QAngle> defaultPIDTthreshold,
             std::optional<PIDGains> straightGains,
@@ -29,6 +30,10 @@ void moveTo(Pose targetPose,
   double w = angularVelocityCap.value_or(defaultOmega).convert(okapi::radps);
   double errorToPID = defaultPIDThreshold.convert(okapi::radian);
 
+  okapi::QLength distanceSettled =
+      straightSettle.value_or(defaultDistanceSettled);
+  okapi::QAngle turnSettled = turnSettle.value_or(defaultTurnSettled);
+
   PID straightPID(straight.kP, straight.kI, straight.kD);
   PID xPID(straight.kP, straight.kI, straight.kD);
   PID yPID(straight.kP, straight.kI, straight.kD);
@@ -41,6 +46,8 @@ void moveTo(Pose targetPose,
 
   enabled = true;
   atTarget = false;
+
+  okapi::Timer printTimer;
 
   while (enabled) {
     auto currPose = odometry.getPose();
@@ -66,7 +73,7 @@ void moveTo(Pose targetPose,
 
     double error = targetAngleNorm - currentAngleNorm;
     error = std::atan2(std::sin(error), std::cos(error));
-    //printf("Error: %1.2f, ", error);
+    // printf("Error: %1.2f, ", error);
 
     double angularVelocity;
     if (fabs(error) > errorToPID) {
@@ -82,13 +89,17 @@ void moveTo(Pose targetPose,
                       currentAngle);
     Eigen::Vector3d u(-xPower, -yPower, angularVelocity);
 
-    //printf("Error: %1.2f, target: %1.2f, current: %1.2f", error, targetAngleNorm, currentAngleNorm);
-    printf("Linear Power: %1.2f, Angular Vel: %1.2f, Ang Error: %1.2f\n", error, power, angularVelocity, error);
-    driveKinematics.moveGlobal(x, u);
+    // printf("Error: %1.2f, target: %1.2f, current: %1.2f", error,
+    // targetAngleNorm, currentAngleNorm);
+    if (printTimer.repeat(100_ms)) {
+      printf("Linear Power: %1.2f, Angular Vel: %1.2f, Ang Error: %1.2f\n",
+             error, power, angularVelocity, error);
+    }
+    driveKinematics.moveGlobalVoltage(x, u);
 
     if (fabs(error) <= turnSettled.convert(okapi::radian) &&
         linearDistance <= distanceSettled.convert(okapi::meter)) {
-          //printf("IS AT TARGET RN");
+      // printf("IS AT TARGET RN");
       atTarget = true;
     } else {
       atTarget = false;
@@ -102,9 +113,18 @@ void moveTo(Pose targetPose,
 
 void stop() {
   enabled = false;
+  atTarget = false;
   robot::driveKinematics.stop();
 }
 
 bool isAtTarget() { return atTarget; }
+
+void waitUntilSettled() {
+  while (!drive::isAtTarget()) {
+    // printf("Still Waiting\n");
+    pros::delay(10);
+  }
+  drive::stop();
+}
 }  // namespace drive
 }  // namespace subsystem

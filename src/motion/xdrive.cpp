@@ -134,6 +134,19 @@ void XDrive::moveGlobal(Eigen::Vector3d x, Eigen::Vector3d u) {
   leftBack.moveVelocity(speeds(3));
 }
 
+void XDrive::moveGlobalVoltage(Eigen::Vector3d x, Eigen::Vector3d u) {
+  using namespace okapi::literals;
+  auto speeds = ik(x, u);
+  speeds = linearWheelSpeedToAngular(3.25_in, speeds);
+  speeds /= 200.0;
+  speeds *= 12000.0;
+  // order of motors: NW, NE, SE, SW
+  leftFront.moveVoltage(speeds(0));
+  rightFront.moveVoltage(speeds(1));
+  rightBack.moveVoltage(speeds(2));
+  leftBack.moveVoltage(speeds(3));
+}
+
 void XDrive::stop() {
   leftFront.moveVelocity(0);
   rightFront.moveVelocity(0);

@@ -10,7 +10,7 @@ void init();
 
 void run(void* p);
 
-enum class state { manual, free, in, out, placing };
+enum class state { manual, free, in, out, outPosition, placing, holding, disabled };
 
 void in();
 

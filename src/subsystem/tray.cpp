@@ -29,7 +29,8 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.00195, 0.0, 0.0, 0);  // was 0.0022
+motion::PID trayPID(0.0012, 0.0, 0.0, 0);  // was 0.0022 was 0.00195
+motion::PID firstMovePID(0.0025, 0.0, 0.0, 0); // was 0.00195
 
 void init() {
   pros::Task trayTask(run, nullptr, "Tray");
@@ -99,9 +100,10 @@ void run(void* p) {
           voltage = std::min(voltage, 1.0);
           voltage = std::max(voltage, -1.0);
           robot::tilt.moveVelocity(voltage * 200.0);
-          printf("%d: Voltage: %1.2f, ", pros::millis(), voltage * 12000.0);
-          printf("Error: %d, ", error);
-          printf("Pos: %1.2f\n", robot::tilt.getPosition());
+          // printf("%d: Voltage: %1.2f, ", pros::millis(), voltage * 12000.0);
+          // printf("Error: %d, ", error);
+          // printf("Pos: %1.2f\n", robot::tilt.getPosition());
+          //robot::tilt.moveAbsolute(placed, 100);
         }
 
         if (abs(error) < 50) {
@@ -125,14 +127,23 @@ void run(void* p) {
         }
         if (abs(robot::tilt.getActualVelocity()) < 1 &&
             standbyTimer.getDtFromMark().convert(okapi::millisecond) > 100) {
-              robot::tilt.tarePosition();
-              robot::tilt.moveVoltage(0);
-              nextMode = mode::holding;
+          robot::tilt.tarePosition();
+          robot::tilt.moveVoltage(0);
+          nextMode = mode::holding;
         }
         break;
-      case mode::prepared:
-        robot::tilt.moveAbsolute(intakeIntersect, 200);
-        break;
+      case mode::prepared: {
+        firstMovePID.setTarget(intakeIntersect);
+        double power = firstMovePID.calculate(robot::tilt.getPosition());
+        power = std::clamp(power, -1.0, 1.0);
+        robot::tilt.moveVoltage(power * 12000.0);
+      } break;
+      case mode::spinnable: {
+        firstMovePID.setTarget(balancedCoM);
+        double power = firstMovePID.calculate(robot::tilt.getPosition());
+        power = std::clamp(power, -1.0, 1.0);
+        robot::tilt.moveVoltage(power * 12000.0);
+      } break;
       case mode::holding:
         if (!pros::competition::is_autonomous()) {
           subsystem::intake::manual();

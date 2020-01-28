@@ -5,7 +5,7 @@
 namespace subsystem {
 namespace rd4b {
 enum class state { resetting, targeting, holding, manual };
-enum targets {downTarget = 0, upThreshold = (52 * 7)};
+enum targets {downTarget = 0, upThreshold = (70 * 7)};
 extern int currTarget;
 extern state currState;
 extern state lastState;

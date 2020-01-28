@@ -7,12 +7,13 @@ namespace robot {
 using namespace okapi::literals;
 okapi::QLength wheelDiameter = 3.25_in * sqrt(2);
 okapi::QLength encoderWheelDiameter = 2.75_in;
-okapi::QLength encoderWidth = 10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8/90.0) * (90.5 / 89.3);
+okapi::QLength encoderWidth =
+    10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8 / 90.0) * (90.5 / 89.3) * (1080.0 / 1104.2) * (720.0 / 726.0) * (1080 / 1082.0);
 
-const int frontRightPort = 20;
-const int frontLeftPort = 14;
-const int backRightPort = 15;
-const int backLeftPort = 1;
+const int frontRightPort = 21;
+const int frontLeftPort = 3;
+const int backRightPort = 10;
+const int backLeftPort = 2;
 
 okapi::Motor frontRight(-frontRightPort);
 okapi::Motor frontLeft(frontLeftPort);
@@ -24,13 +25,13 @@ okapi::Motor frontRightUV(-frontRightPort);
 okapi::Motor backLeftUV(-backLeftPort);
 okapi::Motor backRightUV(-backRightPort);
 
-okapi::Motor intakeRight(-19);
-okapi::Motor intakeLeft(13);
+okapi::Motor intakeRight(-17);
+okapi::Motor intakeLeft(5);
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
-okapi::Motor tilt(-17);
+okapi::Motor tilt(-11);
 
-okapi::Motor lift(18);
+okapi::Motor lift(16);
 
 // IMU port 16
 
@@ -67,11 +68,11 @@ void printController(void* p) {
     std::string angVelString = "AV: " + std::to_string(rates(2));
     std::string xVel = "X: " + std::to_string(rates(0));
     std::string yVel = "Y: " + std::to_string(rates(1));
-    
+
     std::string printStr =
         "A: " +
         std::to_string(odometry.getPose().heading.convert(okapi::degree));
-    //std::string printStr = "C: " + std::to_string(centerEnc.get());
+    std::string encCStr = "C: " + std::to_string(centerEnc.get());
     master.setText(0, 0, printStr);
     pros::delay(51);
 
@@ -80,20 +81,59 @@ void printController(void* p) {
         std::to_string(odometry.getPose().position.getX().convert(okapi::foot));
     std::string encLStr = "L: " + std::to_string(leftEnc.get());
     master.setText(1, 0, xStr);
-    //printf((xStr + ", ").c_str());
+    // printf((xStr + ", ").c_str());
     pros::delay(51);
     std::string yStr =
         "Y: " +
         std::to_string(odometry.getPose().position.getY().convert(okapi::foot));
     std::string encRStr = "R: " + std::to_string(rightEnc.get());
     master.setText(2, 0, yStr);
-    //printf((yStr + "\n").c_str());
+    // printf((yStr + "\n").c_str());
 
     pros::delay(51);
   }
 }
 
 pros::Task bruhTask(printController, nullptr, "Controller Print");
+
+void printIntakeData(void* p) {
+  while (true) {
+    double intakeRightVoltage = intakeRight.getVoltage();
+    double intakeLeftVoltage = intakeLeft.getVoltage();
+    double intakeRightCurrent = intakeRight.getCurrentDraw();
+    double intakeLeftCurrent = intakeLeft.getCurrentDraw();
+    double intakeRightVelocity = intakeRight.getActualVelocity();
+    double intakeLeftVelocity = intakeLeft.getActualVelocity();
+
+    std::string printR = "R: " + std::to_string(intakeRightVoltage) + "mV, " +
+                         std::to_string(intakeRightCurrent) + "mA, " +
+                         std::to_string(intakeRightVelocity) + "rpm\n";
+    std::string printL = "L: " + std::to_string(intakeLeftVoltage) + "mV, " +
+                         std::to_string(intakeLeftCurrent) + "mA, " +
+                         std::to_string(intakeLeftVelocity) + "rpm\n";
+    printL = "";
+    std::string print = printR + printL;
+    printf(print.c_str());
+    pros::delay(300);
+  }
+}
+
+void printDriveMotorData(void* p) {
+  while (true) {
+    double dung = frontRight.getVoltage();
+    double bung = frontRight.getCurrentDraw();
+    double lung = frontRight.getActualVelocity();
+
+    std::string print = "R: " + std::to_string(dung) + "mV, " +
+                         std::to_string(bung) + "mA, " +
+                         std::to_string(lung) + "rpm\n";
+    printf(print.c_str());
+    pros::delay(300);
+  }
+}
+
+//pros::Task intakePrintTask(printIntakeData, nullptr, "Intake Print");
+//pros::Task driveMotorPrintTask(printDriveMotorData, nullptr, "Drive Motorino ree");
 
 // okapi::ChassisController chassisStraight =
 // okapi::ChassisControllerBuilder.withMotors({frontLeft, frontRight},
