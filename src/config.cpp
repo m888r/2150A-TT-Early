@@ -11,9 +11,9 @@ okapi::QLength encoderWidth =
     10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8 / 90.0) * (90.5 / 89.3) * (1080.0 / 1104.2) * (720.0 / 726.0) * (1080 / 1082.0);
 
 const int frontRightPort = 21;
-const int frontLeftPort = 3;
-const int backRightPort = 10;
-const int backLeftPort = 2;
+const int frontLeftPort = 12;
+const int backRightPort = 18;
+const int backLeftPort = 11;
 
 okapi::Motor frontRight(-frontRightPort);
 okapi::Motor frontLeft(frontLeftPort);
@@ -25,13 +25,13 @@ okapi::Motor frontRightUV(-frontRightPort);
 okapi::Motor backLeftUV(-backLeftPort);
 okapi::Motor backRightUV(-backRightPort);
 
-okapi::Motor intakeRight(-17);
-okapi::Motor intakeLeft(5);
+okapi::Motor intakeRight(16);
+okapi::Motor intakeLeft(-14);
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
-okapi::Motor tilt(-11);
+okapi::Motor tilt(-15);
 
-okapi::Motor lift(16);
+okapi::Motor lift(17);
 
 // IMU port 16
 
@@ -73,21 +73,21 @@ void printController(void* p) {
         "A: " +
         std::to_string(odometry.getPose().heading.convert(okapi::degree));
     std::string encCStr = "C: " + std::to_string(centerEnc.get());
-    master.setText(0, 0, printStr);
+    master.setText(0, 0, encCStr.c_str());
     pros::delay(51);
 
     std::string xStr =
         "X: " +
         std::to_string(odometry.getPose().position.getX().convert(okapi::foot));
     std::string encLStr = "L: " + std::to_string(leftEnc.get());
-    master.setText(1, 0, xStr);
+    master.setText(1, 0, encLStr.c_str());
     // printf((xStr + ", ").c_str());
     pros::delay(51);
     std::string yStr =
         "Y: " +
         std::to_string(odometry.getPose().position.getY().convert(okapi::foot));
     std::string encRStr = "R: " + std::to_string(rightEnc.get());
-    master.setText(2, 0, yStr);
+    master.setText(2, 0, encRStr.c_str());
     // printf((yStr + "\n").c_str());
 
     pros::delay(51);

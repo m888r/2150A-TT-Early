@@ -1,6 +1,8 @@
 #include "main.h"
 #include "auton/autos.hpp"
 
+#include "subsystem/xdriveutilities.hpp"
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -16,6 +18,8 @@ void initialize() {
   subsystem::rd4b::init();
 
   robot::odometry.reset();
+
+  subsystem::drive::initXDriveDebug();
 }
 
 /**
@@ -53,14 +57,15 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
+
   //robot::odometry.reset();
   //test();
 
   //lcd::runAuton();
 
 
-  redCloseAuto();
-  //blueCloseAuto();
+  //redCloseAuto();
+  blueCloseAuto();
   //blueFarAuto();
   //redFarAuto();
 }

@@ -4,7 +4,7 @@ namespace subsystem {
 namespace drive {
 
 PIDGains defaultStraightGains(4.05, 0, 0);  // vel 2.3, volt: was 3.8
-PIDGains defaultTurnGains(1.0, 0, 0);      // vel 0.6
+PIDGains defaultTurnGains(1.0, 0, 0);       // vel 0.6
 // maximum omega possible is (3.25" * 0.0254 * pi * (200/60)) / (chassisWidth /
 // 2)
 okapi::QAngularSpeed defaultOmega =
@@ -12,7 +12,7 @@ okapi::QAngularSpeed defaultOmega =
 okapi::QAngle defaultPIDThreshold = 12_deg;
 bool enabled = false;
 bool atTarget = false;
-okapi::QAngle defaultTurnSettled = 2_deg;      // 3 degrees
+okapi::QAngle defaultTurnSettled = 2_deg;         // 3 degrees
 okapi::QLength defaultDistanceSettled = 1.18_in;  // 5 cm
 
 void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
@@ -125,6 +125,34 @@ void waitUntilSettled() {
     pros::delay(10);
   }
   drive::stop();
+}
+
+void printXDriveData() {
+  while (true) {
+    auto pose = odometry.getPose();
+
+    Eigen::Vector3d x(pose.position.getX().convert(okapi::foot),
+                      pose.position.getY().convert(okapi::foot),
+                      pose.heading.convert(okapi::radian));
+
+    Eigen::Vector4d u(robot::frontLeft.getActualVelocity(),
+                      robot::frontRight.getActualVelocity(),
+                      robot::backRight.getActualVelocity(),
+                      robot::backLeft.getActualVelocity());
+
+    u = driveKinematics.angularWheelSpeedToLinear(3.25_in, u);
+
+    auto xDot = driveKinematics.fk(x, u);
+
+    printf("%1.2f,%1.2f,%1.2f,%1.2f,%1.2f,%1.2f\n", x(0), x(0), x(2), xDot(0),
+           xDot(1), xDot(2));
+
+    pros::delay(50);
+  }
+}
+
+void initXDriveDebug() {
+  pros::Task printXDriveDataTask(printXDriveData, "Print X Drive Data");
 }
 }  // namespace drive
 }  // namespace subsystem

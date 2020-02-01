@@ -29,9 +29,9 @@ double XDrive::maxYawRate() {
 }
 
 Eigen::Vector3d XDrive::fk(Eigen::Vector3d x, Eigen::Vector4d u) {
-  // if (velocityCapped) {
-  //   u = u.cwiseMax(-vMax).cwiseMin(vMax);
-  // }
+  if (velocityCapped) {
+    u = u.cwiseMax(-vMax).cwiseMin(vMax);
+  }
 
   double theta = x(2);
 
@@ -54,7 +54,9 @@ Eigen::Vector3d XDrive::fk(Eigen::Vector3d x, Eigen::Vector4d u) {
        0, 1, 0.25, 
        0.25, 0.25, 0.25;
 
-  return A * B * C * u;
+  Eigen::Vector3d result = A * B * C * u;
+
+  return result;
 }
 
 Eigen::Vector4d XDrive::ik(Eigen::Vector3d x, Eigen::Vector3d u) {

@@ -70,7 +70,7 @@ void blueCloseAuto() {
   }
   // drive::moveDistanceProfile(0.65);
   Async({
-    drive::moveTo(Pose(2.4_ft, -0_ft, 0_deg), std::nullopt, std::nullopt,
+    drive::moveTo(Pose(2.35_ft, -0_ft, -0_deg), std::nullopt, std::nullopt,
                   std::nullopt, std::nullopt);
   }) while (!drive::isAtTarget()) {
     // printf("Still Waiting\n");
@@ -87,8 +87,8 @@ void blueCloseAuto() {
   }
   tray::changeMode(tray::mode::standby);
   Async({
-    drive::moveTo(Pose(3.9_ft, -0.3_ft, -40_deg), std::nullopt, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.3, 0, 0)); // position 4
-  })
+    drive::moveTo(Pose(3.9_ft,- 0.3_ft, -40_deg), std::nullopt, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.4, 0, 0)); // position 4
+  }) // was 3.9, 0.3, 40 degrees
   while (!drive::isAtTarget()) {
     // printf("Still Waiting\n");
     pros::delay(10);
@@ -96,7 +96,7 @@ void blueCloseAuto() {
   drive::stop();
   // tray::changeMode(tray::mode::spinnable);
   Async({
-    drive::moveTo(Pose(1.5_ft, -1.72_ft, -135_deg), std::nullopt, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.3, 0, 0)); // position 5
+    drive::moveTo(Pose(1.5_ft, -1.72_ft, -135_deg), std::nullopt, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.4, 0, 0)); // position 5
   })
   drive::waitUntilSettled();
   pros::delay(300);
@@ -108,7 +108,7 @@ void blueCloseAuto() {
   // drive::turnTo(placeAngle);
 
   Async({
-    drive::moveTo(Pose(0.125_ft, -1.82_ft, -98_deg), std::nullopt, std::nullopt,
+    drive::moveTo(Pose(0.125_ft, -1.97_ft, -98_deg), 2.4_in, std::nullopt,
                   std::nullopt, std::nullopt, PIDGains(4.7, 0, 0), PIDGains(1.3, 0, 0)); // position 6, place stack
   })
   while (!drive::isAtTarget()) {
@@ -116,20 +116,21 @@ void blueCloseAuto() {
     pros::delay(10);
   }
   drive::stop();
-
-  intake::manual();
+  
   robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+  intake::manual();
   tray::changeMode(tray::mode::placing);
-  pros::delay(1500);
 
   timer.placeMark();
   while (tray::currMode != tray::mode::holding &&
          timer.getDtFromMark() < 2000_ms) {
     pros::delay(10);
   }
-
+  rd4b::moveTarget(500, 200);
+  pros::delay(500);
   drive::moveDistanceProfile(-0.5, 0_deg, 0.8); // drive away from stack semi slowly
   tray::changeMode(tray::mode::standby);
+  rd4b::changeState(rd4b::state::resetting);
   pros::delay(1000);
 }
 
