@@ -34,4 +34,6 @@ extern okapi::QLength wheelDiameter;
 extern okapi::QLength encoderWheelDiameter;
 extern okapi::QLength encoderWidth;
 
+extern pros::Imu imu;
+
 }  // namespace robot

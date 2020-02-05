@@ -92,7 +92,7 @@ void run(void* p) {
         robot::intakeGroup.moveVoltage(-12000);
         break;
       case state::outPosition:
-        robot::intakeGroup.moveRelative(-180, 200);
+        robot::intakeGroup.moveRelative(-220, 100);
         break;
       case state::holding:
         robot::intakeGroup.moveVoltage(1000);

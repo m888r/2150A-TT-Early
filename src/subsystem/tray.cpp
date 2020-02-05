@@ -29,7 +29,7 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.00115, 0.0, 0.0, 0);  // was 0.0022 was 0.00195
+motion::PID trayPID(0.0011, 0.0, 0.0, 0);  // was 0.0022 was 0.00195 was 0.00115
 motion::PID firstMovePID(0.0025, 0.0, 0.0, 0); // was 0.00195
 
 void init() {
@@ -99,7 +99,7 @@ void run(void* p) {
           double voltage = trayPID.calculate(robot::tilt.getPosition());
           voltage = std::min(voltage, 1.0);
           voltage = std::max(voltage, -1.0);
-          robot::tilt.moveVelocity(voltage * 200.0);
+          robot::tilt.moveVoltage(voltage * 12000.0);
           // printf("%d: Voltage: %1.2f, ", pros::millis(), voltage * 12000.0);
           // printf("Error: %d, ", error);
           // printf("Pos: %1.2f\n", robot::tilt.getPosition());

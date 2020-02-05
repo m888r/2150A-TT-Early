@@ -234,7 +234,7 @@ void redCloseAuto() {
   drive::stop();
   // tray::changeMode(tray::mode::spinnable);
   Async({
-    drive::moveTo(Pose(1.5_ft, 1.72_ft, 135_deg), std::nullopt, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.4, 0, 0)); // position 5
+    drive::moveTo(Pose(1.5_ft, 1.72_ft, 135_deg), 2.4_in, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.4, 0, 0)); // position 5
   })
   drive::waitUntilSettled();
   pros::delay(300);
@@ -249,25 +249,30 @@ void redCloseAuto() {
     drive::moveTo(Pose(0.125_ft, 1.97_ft, 98_deg), 2.4_in, std::nullopt,
                   std::nullopt, std::nullopt, PIDGains(4.7, 0, 0), PIDGains(1.3, 0, 0)); // position 6, place stack
   })
-  while (!drive::isAtTarget()) {
+  timer.placeMark();
+  while (!drive::isAtTarget() && timer.getDtFromMark() < 1200_ms) {
     // printf("Still Waiting\n");
     pros::delay(10);
   }
   drive::stop();
   
-  robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
-  intake::manual();
+  robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+  intake::changeState(intake::state::outPosition);
   tray::changeMode(tray::mode::placing);
 
   timer.placeMark();
   while (tray::currMode != tray::mode::holding &&
-         timer.getDtFromMark() < 2000_ms) {
+         timer.getDtFromMark() < 1200_ms) {
     pros::delay(10);
   }
-  rd4b::moveTarget(500, 200);
+  robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+  rd4b::moveTarget(500, 200); // was 500
   pros::delay(500);
+  Async({
+    pros::delay(300);
+    tray::changeMode(tray::mode::standby);
+  })
   drive::moveDistanceProfile(-0.5, 0_deg, 0.8); // drive away from stack semi slowly
-  tray::changeMode(tray::mode::standby);
   rd4b::changeState(rd4b::state::resetting);
   pros::delay(1000);
 }
@@ -320,5 +325,9 @@ void redFarAuto() {
 
 void redFarAutoParkOnly() {}
 
-// REMEMBER TO REVERSE
-void skills() {}
+void skills() {
+  okapi::Timer timer;
+  robot::lift.tarePosition();
+  odometry.setPose(Pose(8_in, 4.25_ft, 0_deg));
+  pros::delay(50);
+}

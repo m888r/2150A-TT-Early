@@ -148,7 +148,7 @@ void Odometry::reset() {
 void Odometry::run() {
   while (true) {
     update();
-    pros::delay(10);
+    pros::delay(5);
   }
 }
 
