@@ -27,11 +27,15 @@ last_point = (int(center[0]), int(center[1]))
 n = 0
 
 while True:
-  data = input()
+  data = sys.stdin.readline()
+  print(data)
+  if 'exit' in data:
+    print("Exiting.")
+    break
   dataList = data.split(',')
   if len(dataList) != 6:
-    print("Got Invalid Data, Exiting")
-    break
+    cv2.waitKey(int(1000 * dt))
+    continue
   # print("ran " + str(n) + " times")
   n = n + 1
   x = numpy.array([float(dataList[0]), float(dataList[1]), float(dataList[2])])
