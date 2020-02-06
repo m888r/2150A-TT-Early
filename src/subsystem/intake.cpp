@@ -12,12 +12,15 @@ okapi::ControllerButton outtake(okapi::ControllerDigital::R2);
 
 void init() {
   pros::Task(run, nullptr, "intake");
+  robot::intakeGroup.tarePosition();
   // = state::manual;
 }
 
 double slewTarget = 0.0;
 double currPower = 0.0;
 double slewRate = 2000;  // mV per 10ms
+
+double outSpeed = 12000.0;
 
 void moveSlew(double voltage) { slewTarget = voltage; }
 
@@ -58,14 +61,13 @@ void run(void* p) {
     switch (currState) {
       case state::disabled:
         break;
-      case state::manual:
-      {
+      case state::manual: {
         double speed = 12000.0;
-        //double speed = 200;
+        // double speed = 200;
         if (robot::lift.getPosition() > rd4b::targets::upThreshold) {
           speed = 6000.0;
-          //speed = 100;
-          //printf("CHANGED SPEED TO: %1.2f", speed);
+          // speed = 100;
+          // printf("CHANGED SPEED TO: %1.2f", speed);
         }
         // if (intake.isPressed() || outtake.isPressed()) {
         //   robot::intakeGroup.moveVoltage(
@@ -74,7 +76,7 @@ void run(void* p) {
         if (intake.isPressed()) {
           robot::intakeGroup.moveVoltage(12000);
         } else if (outtake.isPressed()) {
-          robot::intakeGroup.moveVoltage(-speed); 
+          robot::intakeGroup.moveVoltage(-speed);
         } else {
           robot::intakeGroup.setBrakeMode(
               okapi::AbstractMotor::brakeMode::brake);
@@ -89,7 +91,7 @@ void run(void* p) {
         robot::intakeGroup.moveVoltage(12000);
         break;
       case state::out:
-        robot::intakeGroup.moveVoltage(-12000);
+        robot::intakeGroup.moveVoltage(-outSpeed);
         break;
       case state::outPosition:
         robot::intakeGroup.moveRelative(-220, 100);
@@ -98,14 +100,16 @@ void run(void* p) {
         robot::intakeGroup.moveVoltage(1000);
         break;
       case state::placing:
-        //printf("IS IN PLACING MODE");
+        // printf("IS IN PLACING MODE");
         robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
         if (intake.isPressed() || outtake.isPressed()) {
-          robot::intakeGroup.moveVelocity((intake.isPressed() - outtake.isPressed()) * 100.0);
+          robot::intakeGroup.moveVelocity(
+              (intake.isPressed() - outtake.isPressed()) * 100.0);
         }
-        //robot::intakeGroup.moveVoltage(800);
+        // robot::intakeGroup.moveVoltage(800);
         // if (intake.isPressed() || outtake.isPressed()) {
-        //     robot::intakeGroup.moveVoltage((intake.isPressed() - outtake.isPressed()) * 12000.0);
+        //     robot::intakeGroup.moveVoltage((intake.isPressed() -
+        //     outtake.isPressed()) * 12000.0);
         // } else {
         //   robot::intakeGroup.setBrakeMode(
         //       okapi::AbstractMotor::brakeMode::brake);
@@ -130,13 +134,21 @@ void run(void* p) {
 
 void in() { currState = state::in; }
 
-void out() { currState = state::out; }
+void out() {
+  outSpeed = 12000;
+  currState = state::out;
+}
 
 void free() { currState = state::free; }
 
 void manual() { currState = state::manual; }
 
 void changeState(state state) { currState = state; }
+
+void outAtSpeed(double speed) {
+  outSpeed = std::abs(speed);
+  currState = state::out;
+}
 
 }  // namespace intake
 }  // namespace subsystem

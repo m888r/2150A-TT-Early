@@ -29,7 +29,8 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.0011, 0.0, 0.0, 0);  // was 0.0022 was 0.00195 was 0.00115
+motion::PID trayPID(0.0011, 0.0, 0.000012, 0);  // was 0.0022 was 0.00195 was 0.00115
+
 motion::PID firstMovePID(0.0025, 0.0, 0.0, 0); // was 0.00195
 
 void init() {
@@ -95,6 +96,9 @@ void run(void* p) {
             printf("%d: profile complete!\n", pros::millis());
           }
         } else if (motionProfileDisabled) {
+          trayPID.setMaxErrorToIntegrate(500);
+          trayPID.setIntegralLimits(0, 0.25); // make it never be able to go backwards, no need
+
           trayPID.setTarget((placed));
           double voltage = trayPID.calculate(robot::tilt.getPosition());
           voltage = std::min(voltage, 1.0);

@@ -14,7 +14,7 @@ namespace tray {
 
 //using namespace okapi;
 enum targets {
-  placed = 2000, // 1320 fully vertical
+  placed = 1850, // 1320 fully vertical
   intakeIntersect = 952,
   balancedCoM = 500,
   normal = 0,

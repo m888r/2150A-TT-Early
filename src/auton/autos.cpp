@@ -225,7 +225,7 @@ void redCloseAuto() {
   }
   tray::changeMode(tray::mode::standby);
   Async({
-    drive::moveTo(Pose(3.9_ft, 0.3_ft, 40_deg), std::nullopt, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.4, 0, 0)); // position 4
+    drive::moveTo(Pose(3.9_ft, 0.4_ft, 40_deg), 2.4_in, std::nullopt, std::nullopt, std::nullopt, PIDGains(4.6, 0, 0), PIDGains(1.5, 0, 0)); // position 4
   }) // was 3.9, 0.3, 40 degrees
   while (!drive::isAtTarget()) {
     // printf("Still Waiting\n");
@@ -239,32 +239,38 @@ void redCloseAuto() {
   drive::waitUntilSettled();
   pros::delay(300);
   printf("Got the cube, boutta prepare tray\n");
-  intake::changeState(intake::state::free);
+  //intake::changeState(intake::state::free);
+  
   tray::changeMode(tray::mode::prepared);
-  pros::delay(350);
+  //pros::delay(350);
   // okapi::QAngle placeAngle = 110_deg;
   // drive::turnTo(placeAngle);
 
   Async({
-    drive::moveTo(Pose(0.125_ft, 1.97_ft, 98_deg), 2.4_in, std::nullopt,
+    drive::moveTo(Pose(0.0_ft, 1.87_ft, 98_deg), 2.4_in, std::nullopt,
                   std::nullopt, std::nullopt, PIDGains(4.7, 0, 0), PIDGains(1.3, 0, 0)); // position 6, place stack
   })
   timer.placeMark();
-  while (!drive::isAtTarget() && timer.getDtFromMark() < 1200_ms) {
+  Async({
+    pros::delay(350);
+    intake::changeState(intake::state::outPosition);
+  })
+  while (!drive::isAtTarget() && timer.getDtFromMark() < 2000_ms) {
     // printf("Still Waiting\n");
     pros::delay(10);
   }
   drive::stop();
   
   robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
-  intake::changeState(intake::state::outPosition);
+  //intake::changeState(intake::state::free);
   tray::changeMode(tray::mode::placing);
 
   timer.placeMark();
   while (tray::currMode != tray::mode::holding &&
-         timer.getDtFromMark() < 1200_ms) {
+         timer.getDtFromMark() < 1400_ms) {
     pros::delay(10);
   }
+  intake::changeState(intake::state::free);
   robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   rd4b::moveTarget(500, 200); // was 500
   pros::delay(500);
@@ -325,9 +331,58 @@ void redFarAuto() {
 
 void redFarAutoParkOnly() {}
 
+// start on red side in line with 3 cube line
 void skills() {
   okapi::Timer timer;
   robot::lift.tarePosition();
   odometry.setPose(Pose(8_in, 4.25_ft, 0_deg));
   pros::delay(50);
+
+  // deploy things
+  intake::in();
+  // Async({
+  //   pros::delay(100);
+  //   rd4b::moveTarget(300);
+  //   pros::delay(400);
+  //   rd4b::moveTarget(0);   
+  //   rd4b::changeState(rd4b::state::resetting);
+  // })
+
+  // // grab cube for tower, though this is unnecessary
+  // Async({
+  //   drive::moveTo(Pose(1.5_ft, 5_ft, 45_deg), 2.4_in);
+  // })
+  // drive::waitUntilSettled();
+  // lift to drop it
+  rd4b::moveTarget(1400, 200);
+  timer.placeMark();
+  while (std::abs(robot::lift.getPosition()) < 600 &&
+         timer.getDtFromMark() < 1500_ms) {
+    pros::delay(10);
+  }
+  
+  intake::changeState(intake::state::outPosition);
+
+  // drive forward to deposit cube
+  Async({
+    drive::moveTo(Pose(1.5_ft, 5.5_ft, 45_deg), 2.4_in);
+  })
+  drive::waitUntilSettled();
+  intake::outAtSpeed(6000);
+  pros::delay(500);
+
+  Async({
+    drive::moveTo(Pose(3.25_ft, 4.25_ft, 0_deg), 2.4_in, 2.5_deg);
+  })
+  pros::delay(300);
+  intake::in();
+  rd4b::changeState(rd4b::state::resetting);
+  drive::waitUntilSettled();
+
+  //wait for it to finish going down
+  while (std::abs(robot::lift.getPosition()) > 200 &&
+         timer.getDtFromMark() < 1500_ms) {
+    pros::delay(10);
+  }
+
 }

@@ -21,5 +21,7 @@ void free();
 void manual();
 
 void changeState(state state);
+
+void outAtSpeed(double speed);
 }  // namespace intake
 }  // namespace subsystem

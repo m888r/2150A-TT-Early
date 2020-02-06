@@ -58,14 +58,19 @@ void competition_initialize() {
  */
 void autonomous() {
 
+  //reset intake, rd4b, tilter
+  robot::intakeGroup.tarePosition();
+  robot::lift.tarePosition();
+  robot::tilt.tarePosition();
+  pros::delay(20);
+
   //robot::odometry.reset();
   //test();
 
   //lcd::runAuton();
 
-
-  //redCloseAuto();
-  blueCloseAuto();
+  redCloseAuto();
+  //blueCloseAuto();
   //blueFarAuto();
   //redFarAuto();
 }

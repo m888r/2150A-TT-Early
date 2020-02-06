@@ -11,8 +11,8 @@ okapi::QLength encoderWidth =
     10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8 / 90.0) * (90.5 / 89.3) * (1080.0 / 1104.2) * (720.0 / 726.0) * (1080 / 1082.0);
 
 const int frontRightPort = 21;
-const int frontLeftPort = 12;
-const int backRightPort = 20;
+const int frontLeftPort = 5;
+const int backRightPort = 8;
 const int backLeftPort = 11;
 
 okapi::Motor frontRight(-frontRightPort);
@@ -26,15 +26,15 @@ okapi::Motor backLeftUV(-backLeftPort);
 okapi::Motor backRightUV(-backRightPort);
 
 okapi::Motor intakeRight(16);
-okapi::Motor intakeLeft(-3);
+okapi::Motor intakeLeft(-13); // was a literal port mass murderer before replacing motor
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
-okapi::Motor tilt(-15);
+okapi::Motor tilt(-12); // killed port 15
 
 okapi::Motor lift(17);
 
 // IMU port 16
-pros::Imu imu(13);
+pros::Imu imu(4);
 
 okapi::ADIEncoder leftEnc('A', 'B', true);
 okapi::ADIEncoder centerEnc('C', 'D');
