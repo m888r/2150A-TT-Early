@@ -15,12 +15,15 @@ bool atTarget = false;
 okapi::QAngle defaultTurnSettled = 2_deg;         // 3 degrees
 okapi::QLength defaultDistanceSettled = 1.18_in;  // 5 cm
 
+// max velocity if the robot was going straight forward in m/s
+double defaultMaxLinearVelocity = 1000000.0;
+
 void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
             std::optional<okapi::QAngle> turnSettle,
             std::optional<okapi::QAngularSpeed> angularVelocityCap,
             std::optional<okapi::QAngle> defaultPIDTthreshold,
             std::optional<PIDGains> straightGains,
-            std::optional<PIDGains> turnGains) {
+            std::optional<PIDGains> turnGains, std::optional<double> maxLinearVelocity) {
   using namespace motion;
   using namespace robot;
   using namespace structs;
@@ -29,6 +32,8 @@ void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
   PIDGains turn = turnGains.value_or(defaultTurnGains);
   double w = angularVelocityCap.value_or(defaultOmega).convert(okapi::radps);
   double errorToPID = defaultPIDThreshold.convert(okapi::radian);
+
+  double maxLinVel = maxLinearVelocity.value_or(defaultMaxLinearVelocity);
 
   okapi::QLength distanceSettled =
       straightSettle.value_or(defaultDistanceSettled);
@@ -62,6 +67,9 @@ void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
         xPID.calculate(currPose.position.getX().convert(okapi::meter));
     double yPower =
         yPID.calculate(currPose.position.getY().convert(okapi::meter));
+
+    xPower = std::clamp(xPower, -maxLinVel, maxLinVel);
+    yPower = std::clamp(yPower, -maxLinVel, maxLinVel);
 
     double targetAngle = targetPose.heading.convert(okapi::radian);
     double targetAngleNorm =
