@@ -44,7 +44,7 @@
 #include "config.hpp"
 #include "subsystem/tray.hpp"
 #include "subsystem/rd4b.hpp"
-#include "auton/lcd.hpp"
+#include "auton/selector.hpp"
 
 /**
  * If you find doing pros::Motor() to be tedious and you'd prefer just to do

@@ -1,5 +1,6 @@
 #include "main.h"
-#include "auton/autos.hpp"
+#include "auton/autons.hpp"
+//#include "auton/autos.hpp"
 
 #include "subsystem/xdriveutilities.hpp"
 
@@ -42,7 +43,8 @@ void competition_initialize() {
   robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   pros::delay(200);
-  lcd::initButtons();
+  auton::init();
+  //lcd::initButtons();
 }
 
 /**
@@ -64,12 +66,14 @@ void autonomous() {
   robot::tilt.tarePosition();
   pros::delay(20);
 
+  auton::runAuton();
+
   //robot::odometry.reset();
   //test();
 
   //lcd::runAuton();
 
-  redCloseAuto();
+  //redCloseAuto();
   //blueCloseAuto();
   //blueFarAuto();
   //redFarAuto();

@@ -17,7 +17,7 @@ void moveTo(Pose targetPose,
             std::optional<okapi::QAngularSpeed> omegaDesired = std::nullopt,
             std::optional<okapi::QAngle> defaultPIDTthreshold = std::nullopt,
             std::optional<PIDGains> straightGains = std::nullopt,
-            std::optional<PIDGains> turnGains = std::nullopt);
+            std::optional<PIDGains> turnGains = std::nullopt, std::optional<double> maxLinearVelocity = std::nullopt);
 
 void stop();
 

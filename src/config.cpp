@@ -11,7 +11,7 @@ okapi::QLength encoderWidth =
     10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8 / 90.0) * (90.5 / 89.3) * (1080.0 / 1104.2) * (720.0 / 726.0) * (1080 / 1082.0);
 
 const int frontRightPort = 21;
-const int frontLeftPort = 5;
+const int frontLeftPort = 6;
 const int backRightPort = 8;
 const int backLeftPort = 11;
 
@@ -35,6 +35,8 @@ okapi::Motor lift(17);
 
 // IMU port 16
 pros::Imu imu(4);
+
+pros::ADIDigitalIn selectionBtn('F');
 
 okapi::ADIEncoder leftEnc('A', 'B', true);
 okapi::ADIEncoder centerEnc('C', 'D');

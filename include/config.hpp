@@ -21,6 +21,8 @@ extern okapi::Motor lift;
 
 extern okapi::AsyncMotionProfileController straightAMPC;
 
+extern pros::ADIDigitalIn selectionBtn;
+
 extern okapi::ADIEncoder rightEnc;
 extern okapi::ADIEncoder leftEnc;
 extern okapi::ADIEncoder centerEnc;
