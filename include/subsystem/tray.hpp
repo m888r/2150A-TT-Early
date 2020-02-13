@@ -16,14 +16,14 @@ namespace tray {
 enum targets {
   placed = 1850, // 1320 fully vertical
   intakeIntersect = 952,
-  balancedCoM = 500,
+  balancedCoM = 750,
   normal = 0,
   hightower = 42
 };
 
 int getTarget(targets targ);
 
-enum class mode { placing, standby, hightower, holding, resetting, prepared, spinnable};
+enum class mode { placing, standby, hightower, holding, resetting, prepared, spinnable, deploying};
 extern mode currMode;
 extern mode lastMode;
 

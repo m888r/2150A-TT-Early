@@ -25,8 +25,8 @@ okapi::Motor frontRightUV(-frontRightPort);
 okapi::Motor backLeftUV(-backLeftPort);
 okapi::Motor backRightUV(-backRightPort);
 
-okapi::Motor intakeRight(16);
-okapi::Motor intakeLeft(-13); // was a literal port mass murderer before replacing motor
+okapi::Motor intakeRight(13); // was 16
+okapi::Motor intakeLeft(-7); // was a literal port mass murderer before replacing motor
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
 okapi::Motor tilt(-12); // killed port 15

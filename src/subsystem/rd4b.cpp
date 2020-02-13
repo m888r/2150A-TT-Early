@@ -59,7 +59,7 @@ void run(void* p) {
           robot::lift.moveVelocity(0);
           robot::lift.tarePosition();
           stateMutex.take(TIMEOUT_MAX);
-          currState = state::holding;
+          currState = state::manual;
           stateMutex.give();
         }
         break;
@@ -69,6 +69,14 @@ void run(void* p) {
         } else {
           robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
           robot::lift.moveVelocity(0);
+        }
+        break;
+      case state::up:
+        robot::lift.moveVoltage(12000.0);
+        break;
+      case state::placing:
+        if (lastState != state::placing) { 
+          robot::lift.moveRelative(175, 200); // figure out logic to make it relative
         }
         break;
     }

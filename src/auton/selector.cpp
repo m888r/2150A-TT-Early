@@ -13,7 +13,7 @@ lv_obj_t *curr_sel_label;
 
 // init the lcd
 void init() {
-  selectedAuton = 0;
+  selectedAuton = 1; // make default red protected
 
   curr_sel_label = lv_label_create(lv_scr_act(), NULL);
   lv_label_set_text(curr_sel_label, autonNames[selectedAuton].c_str());

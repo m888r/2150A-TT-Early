@@ -25,6 +25,8 @@ bool isAtTarget();
 
 void waitUntilSettled();
 
+void wusNoStop();
+
 void printXDriveData();
 
 void initXDriveDebug();

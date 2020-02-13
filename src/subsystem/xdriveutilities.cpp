@@ -116,7 +116,7 @@ void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
     pros::delay(10);
   }
 
-  driveKinematics.stop();
+  //driveKinematics.stop();
 }
 
 void stop() {
@@ -133,6 +133,14 @@ void waitUntilSettled() {
     pros::delay(10);
   }
   drive::stop();
+}
+
+void wusNoStop() {
+  while (!drive::isAtTarget()) {
+    pros::delay(10);
+  }
+  enabled = false;
+  atTarget = false;
 }
 
 void printXDriveData() {

@@ -29,9 +29,12 @@ double jerkConstraint =
 structs::KinematicConstraints trayConstraints(velConstraint, accelConstraint,
                                               jerkConstraint);
 
-motion::PID trayPID(0.0011, 0.0, 0.000012, 0);  // was 0.0022 was 0.00195 was 0.00115
+motion::PID trayPID(0.00115, 0.0, 0.000022, // was 0.000012 i
+                    0);  // was 0.0022 was 0.00195 was 0.00115 was 0.0011
 
-motion::PID firstMovePID(0.0025, 0.0, 0.0, 0); // was 0.00195
+motion::PID firstMovePID(0.0025, 0.0, 0.0, 0);  // was 0.00195
+
+motion::PID deployPID(0.0035, 0.0, 0.0, 0);
 
 void init() {
   pros::Task trayTask(run, nullptr, "Tray");
@@ -79,7 +82,7 @@ void run(void* p) {
             motionprofileDirection = 1;
           }
         }
-        subsystem::intake::changeState(subsystem::intake::state::placing);
+        //subsystem::intake::changeState(subsystem::intake::state::placing);
         if ((!motionProfileComplete || abs(error) > 150) &&
             !motionProfileDisabled) {
           printf("%d: Error: %d, ", error, pros::millis());
@@ -97,7 +100,8 @@ void run(void* p) {
           }
         } else if (motionProfileDisabled) {
           trayPID.setMaxErrorToIntegrate(500);
-          trayPID.setIntegralLimits(0, 0.25); // make it never be able to go backwards, no need
+          trayPID.setIntegralLimits(
+              0, 0.25);  // make it never be able to go backwards, no need
 
           trayPID.setTarget((placed));
           double voltage = trayPID.calculate(robot::tilt.getPosition());
@@ -107,7 +111,7 @@ void run(void* p) {
           // printf("%d: Voltage: %1.2f, ", pros::millis(), voltage * 12000.0);
           // printf("Error: %d, ", error);
           // printf("Pos: %1.2f\n", robot::tilt.getPosition());
-          //robot::tilt.moveAbsolute(placed, 100);
+          // robot::tilt.moveAbsolute(placed, 100);
         }
 
         if (abs(error) < 50) {
@@ -117,7 +121,9 @@ void run(void* p) {
       } break;
       case mode::standby:
         // subsystem::intake::free();
-        subsystem::intake::changeState(subsystem::intake::state::placing);
+        // if (!pros::competition::is_autonomous()) {
+        //   subsystem::intake::changeState(subsystem::intake::state::manual);
+        // }
         robot::tilt.moveAbsolute((normal), 200);
         if (abs(robot::tilt.getTargetPosition() - robot::tilt.getPosition()) <
             50) {
@@ -142,6 +148,12 @@ void run(void* p) {
         power = std::clamp(power, -1.0, 1.0);
         robot::tilt.moveVoltage(power * 12000.0);
       } break;
+      case mode::deploying : {
+        deployPID.setTarget(balancedCoM);
+        double power = firstMovePID.calculate(robot::tilt.getPosition());
+        power = std::clamp(power, -1.0, 1.0);
+        robot::tilt.moveVoltage(power * 12000.0);     
+      }
       case mode::spinnable: {
         firstMovePID.setTarget(balancedCoM);
         double power = firstMovePID.calculate(robot::tilt.getPosition());
@@ -149,9 +161,9 @@ void run(void* p) {
         robot::tilt.moveVoltage(power * 12000.0);
       } break;
       case mode::holding:
-        if (!pros::competition::is_autonomous()) {
-          subsystem::intake::manual();
-        }
+        // if (!pros::competition::is_autonomous()) {
+        //   subsystem::intake::manual();
+        // }
 
         robot::tilt.moveVelocity(0);
         break;

@@ -7,6 +7,7 @@ namespace subsystem {
 namespace intake {
 
 state currState = state::manual;
+state lastState = currState;
 okapi::ControllerButton intake(okapi::ControllerDigital::R1);
 okapi::ControllerButton outtake(okapi::ControllerDigital::R2);
 
@@ -94,7 +95,10 @@ void run(void* p) {
         robot::intakeGroup.moveVoltage(-outSpeed);
         break;
       case state::outPosition:
-        robot::intakeGroup.moveRelative(-220, 100);
+        //robot::intakeGroup.moveVoltage(0);
+        if (lastState != state::outPosition) {
+          robot::intakeGroup.moveRelative(-220, 100);
+        }
         break;
       case state::holding:
         robot::intakeGroup.moveVoltage(1000);
@@ -127,6 +131,8 @@ void run(void* p) {
         // }
         break;
     }
+
+    lastState = currState;
 
     pros::delay(10);
   }

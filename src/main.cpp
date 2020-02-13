@@ -44,6 +44,7 @@ void competition_initialize() {
   robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   pros::delay(200);
   auton::init();
+  auton::pollSensor();
   //lcd::initButtons();
 }
 
@@ -59,6 +60,7 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
+  uint32_t autoStartTime = pros::millis();
 
   //reset intake, rd4b, tilter
   robot::intakeGroup.tarePosition();
@@ -77,6 +79,8 @@ void autonomous() {
   //blueCloseAuto();
   //blueFarAuto();
   //redFarAuto();
+
+  printf("Auton took: %1.2f seconds", (pros::millis() - autoStartTime) / 1000.0);
 }
 
 /**
@@ -93,22 +97,26 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+  using namespace subsystem;
+
   okapi::Controller master(okapi::ControllerId::master);
 
   robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
 
-  subsystem::rd4b::changeState(subsystem::rd4b::state::manual);
+  rd4b::changeState(subsystem::rd4b::state::manual);
   robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   
   /// REMEMBER TO CHANGE TO MANUAL
-  subsystem::intake::changeState(subsystem::intake::state::manual);
+  intake::changeState(subsystem::intake::state::manual);
   robot::intakeGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
 
   okapi::ControllerButton placeButton(okapi::ControllerDigital::up);
   okapi::ControllerButton standbyButton(okapi::ControllerDigital::left);
 
   okapi::ControllerButton resetTrayButton(okapi::ControllerDigital::down);
-  okapi::ControllerButton defenseButton(okapi::ControllerDigital::B);
+  okapi::ControllerButton defenseButton(okapi::ControllerDigital::Y);
+
+  okapi::ControllerButton resetLiftButton(okapi::ControllerDigital::B);
 
 
   okapi::ControllerButton motorTestBtn(okapi::ControllerDigital::A);
@@ -162,28 +170,44 @@ void opcontrol() {
 
     if (placingModeActive) {
       if (placeButton.isPressed()) {
-        subsystem::tray::changeMode(subsystem::tray::mode::placing);
+        rd4b::changeState(rd4b::state::placing);
+        tray::changeMode(tray::mode::placing);
       } else {
-        subsystem::tray::changeMode(subsystem::tray::mode::holding);
+        rd4b::changeState(rd4b::state::manual);
+        tray::changeMode(tray::mode::holding);
+      }
+    } else {
+      if (rd4b::getState() == rd4b::state::placing) {
+        rd4b::changeState(rd4b::state::manual);
       }
     }
 
+    // if (resetLiftButton.changedToPressed() && (rd4b::getState() != rd4b::state::resetting)) {
+    //   rd4b::changeState(rd4b::state::resetting);
+    // } else if (rd4b::getState() == rd4b::state::resetting) {
+    //   rd4b::changeState(rd4b::state::manual);
+    // }
+
+    if (resetLiftButton.changedToPressed()) {
+      robot::lift.tarePosition();
+    }
+
     if (placeButton.changedToPressed()) {
-      if (subsystem::tray::currMode == subsystem::tray::mode::prepared || placingModeActive) {
+      if (tray::currMode == tray::mode::prepared || placingModeActive) {
         placingModeActive = true;
       } else {
-        subsystem::tray::changeMode(subsystem::tray::mode::prepared);
+        tray::changeMode(tray::mode::prepared);
       }
     }
     
     if (standbyButton.changedToPressed()) {
       placingModeActive = false;
-      subsystem::tray::changeMode(subsystem::tray::mode::standby);
+      tray::changeMode(tray::mode::standby);
     }
 
     if (resetTrayButton.changedToPressed()) {
       placingModeActive = false;
-      subsystem::tray::changeMode(subsystem::tray::mode::resetting);
+      tray::changeMode(tray::mode::resetting);
     }
 
     pros::delay(10);
