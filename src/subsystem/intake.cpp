@@ -66,7 +66,7 @@ void run(void* p) {
         double speed = 12000.0;
         // double speed = 200;
         if (robot::lift.getPosition() > rd4b::targets::upThreshold) {
-          speed = 6000.0;
+          speed = 8000.0;
           // speed = 100;
           // printf("CHANGED SPEED TO: %1.2f", speed);
         }

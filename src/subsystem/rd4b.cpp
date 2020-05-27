@@ -74,15 +74,55 @@ void run(void* p) {
       case state::up:
         robot::lift.moveVoltage(12000.0);
         break;
+      case state::down:
+        robot::lift.moveVoltage(-12000.0);
+        break;
       case state::placing:
         if (lastState != state::placing) { 
-          robot::lift.moveRelative(175, 200); // figure out logic to make it relative
+          robot::lift.moveRelative(200, 200); // figure out logic to make it relative
         }
         break;
     }
     lastState = currState;
     pros::delay(10);
   }
+}
+
+int modeSelector = 0;
+
+void rd4bModeStateMachine() {
+  if (up.changedToPressed()) {
+    modeSelector++;
+  }
+  else if (down.changedToPressed()) {
+    modeSelector--;
+  }
+
+  if (modeSelector > 3) {
+    modeSelector = 3;
+  }
+  if (modeSelector < 0) {
+    modeSelector = 0;
+  }
+
+  // remember to:
+  // change a button to activate state::resetting
+  // change state::resetting to not change the state after finishing (and just like hold motor)
+  switch (modeSelector) {
+    case bottom:
+      moveTarget(downTarget);
+      break;
+    case small:
+      moveTarget(smallTowerTarget);
+      break;
+    case medium:
+      moveTarget(mediumTowerTarget);
+      break;
+    case cubeStack:
+      moveTarget(cubeStackTarget);
+      break;
+  }
+
 }
 
 void moveTarget(int target, int desiredSpeed) {
@@ -100,7 +140,7 @@ void changeState(state state) {
 }
 
 void waitUntilSettled() {
-  while (abs(robot::lift.getTargetPosition() - robot::lift.getPosition()) > 50) {
+  while (std::abs(robot::lift.getTargetPosition() - robot::lift.getPosition()) > 50) {
     pros::delay(10);
   }
 }

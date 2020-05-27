@@ -55,13 +55,13 @@ namespace auton {
     drive::waitUntilSettled();
     intake::outAtSpeed(8000);
     pros::delay(300);
+    intake::in();
 
-    // drive to the line cubes (might want to consider doing two targets with wusnostop instead of just one)
+    // drive to the line of cubes (might want to consider doing two targets with wusnostop instead of just one)
     Async({
       drive::moveTo(Pose(3.25_ft, 4.25_ft, 0_deg), 2.4_in, 2.5_deg);
     })
     pros::delay(300);
-    intake::in();
     rd4b::changeState(rd4b::state::resetting);
 
     //wait for it to finish going down
@@ -108,10 +108,32 @@ namespace auton {
       pros::delay(10);
     }
     Async({
-      drive::moveTo(Pose(5.5_ft, 4_ft, 0_deg), 2.4_in);
+      drive::moveTo(Pose(5.5_ft, 4_ft, -45_deg), 2.4_in);
     })
     drive::waitUntilSettled();
+    // drop the cube into the short tower
     intake::outAtSpeed(8000);
     pros::delay(300);
+    intake::in();
+
+    // move the rd4b down and drive to intake the cubes TODO: perfectly sync this to also grab the cubes
+    rd4b::changeState(rd4b::state::resetting);
+    Async({
+      drive::moveTo(Pose(5_ft, 2.25_ft, 180_deg), 2.4_in);
+    })
+    drive::waitUntilSettled();
+
+    // drive forward to grab the rest of the cubes prolly dont need delay after
+    Async({
+      drive::moveTo(Pose(3_ft, 2.25_ft, 180_deg), 2.4_in, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, 0.8);
+    })
+    drive::waitUntilSettled();
+
+    // drive to tower
+    Async({
+      drive::moveTo(Pose(3.75_ft, 0.75_ft, -135_deg), 2.4_in);
+    })
+    drive::waitUntilSettled();
+
   }
 }

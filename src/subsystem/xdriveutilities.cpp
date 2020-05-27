@@ -14,16 +14,19 @@ bool enabled = false;
 bool atTarget = false;
 okapi::QAngle defaultTurnSettled = 2_deg;         // 3 degrees
 okapi::QLength defaultDistanceSettled = 1.18_in;  // 5 cm
-
 // max velocity if the robot was going straight forward in m/s
 double defaultMaxLinearVelocity = 1000000.0;
+
+Pose currentTargetPose(0_in, 0_in, 0_deg);
 
 void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
             std::optional<okapi::QAngle> turnSettle,
             std::optional<okapi::QAngularSpeed> angularVelocityCap,
             std::optional<okapi::QAngle> defaultPIDTthreshold,
             std::optional<PIDGains> straightGains,
-            std::optional<PIDGains> turnGains, std::optional<double> maxLinearVelocity) {
+            std::optional<PIDGains> turnGains,
+            std::optional<double> maxLinearVelocity,
+            std::optional<double> velSettle) {
   using namespace motion;
   using namespace robot;
   using namespace structs;
@@ -34,6 +37,7 @@ void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
   double errorToPID = defaultPIDThreshold.convert(okapi::radian);
 
   double maxLinVel = maxLinearVelocity.value_or(defaultMaxLinearVelocity);
+  double velSettled = velSettle.value_or(defaultMaxLinearVelocity);
 
   okapi::QLength distanceSettled =
       straightSettle.value_or(defaultDistanceSettled);
@@ -45,6 +49,7 @@ void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
   PID turnPID(turn.kP, turn.kI, turn.kD);
 
   PositionVector targetPosition = targetPose.position;
+  currentTargetPose = targetPose;
 
   straightPID.setTarget(0);
   turnPID.setTarget(0);
@@ -99,14 +104,35 @@ void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
 
     // printf("Error: %1.2f, target: %1.2f, current: %1.2f", error,
     // targetAngleNorm, currentAngleNorm);
+
+    Eigen::Vector4d uState(robot::frontLeft.getActualVelocity(),
+                           robot::frontRight.getActualVelocity(),
+                           robot::backRight.getActualVelocity(),
+                           robot::backLeft.getActualVelocity());
+
+    uState = driveKinematics.angularWheelSpeedToLinear(3.25_in, uState);
+
+    auto xDot = driveKinematics.fk(x, uState);
+
+    auto currentLinearVelocity =
+        std::sqrt((xDot(0) * xDot(0)) + (xDot(1) * xDot(1)));
+
+    double currentLinearPower =
+        std::sqrt(std::pow(u(0), 2) + std::pow(u(1), 2));
+
     if (printTimer.repeat(100_ms)) {
-      printf("Linear Power: %1.2f, Angular Vel: %1.2f, Ang Error: %1.2f\n",
-             error, power, angularVelocity, error);
+      printf(
+          "Linear Power: %1.2f, Lin Vel: %1.2f, Angular Vel: %1.2f, Ang Error: "
+          "%1.2f\n",
+          currentLinearPower, currentLinearVelocity, angularVelocity, error);
     }
     driveKinematics.moveGlobalVoltage(x, u);
 
     if (fabs(error) <= turnSettled.convert(okapi::radian) &&
-        linearDistance <= distanceSettled.convert(okapi::meter)) {
+        linearDistance <= distanceSettled.convert(okapi::meter) &&
+        currentLinearVelocity <= velSettled) {
+      printf("broke out, vel settled: %1.2f, curr vel: %1.2f", velSettled,
+             currentLinearVelocity);
       // printf("IS AT TARGET RN");
       atTarget = true;
     } else {
@@ -116,7 +142,7 @@ void moveTo(Pose targetPose, std::optional<okapi::QLength> straightSettle,
     pros::delay(10);
   }
 
-  //driveKinematics.stop();
+  // driveKinematics.stop();
 }
 
 void stop() {
@@ -143,6 +169,41 @@ void wusNoStop() {
   atTarget = false;
 }
 
+okapi::QLength getDistanceToTarget() {
+  auto target = currentTargetPose.position;
+  auto current = robot::odometry.getPose().position;
+  auto difference = PositionVector::subtract(target, current);
+
+  return std::sqrt((difference.getX().convert(okapi::inch) *
+                    difference.getX().convert(okapi::inch)) +
+                   (difference.getY().convert(okapi::inch) *
+                    difference.getY().convert(okapi::inch))) *
+         okapi::inch;
+}
+
+double getLinearVelocity() {
+  auto currPose = robot::odometry.getPose();
+  auto currentAngle = currPose.heading.convert(okapi::radian);
+
+  Eigen::Vector3d x(currPose.position.getX().convert(okapi::meter),
+                    currPose.position.getY().convert(okapi::meter),
+                    currentAngle);
+
+  Eigen::Vector4d uState(robot::frontLeft.getActualVelocity(),
+                         robot::frontRight.getActualVelocity(),
+                         robot::backRight.getActualVelocity(),
+                         robot::backLeft.getActualVelocity());
+
+  uState = driveKinematics.angularWheelSpeedToLinear(3.25_in, uState);
+
+  auto xDot = driveKinematics.fk(x, uState);
+
+  auto currentLinearVelocity =
+      std::sqrt((xDot(0) * xDot(0)) + (xDot(1) * xDot(1)));
+  
+  return currentLinearVelocity;
+}
+
 void printXDriveData() {
   while (true) {
     auto pose = odometry.getPose();
@@ -160,7 +221,7 @@ void printXDriveData() {
 
     auto xDot = driveKinematics.fk(x, u);
 
-    printf("%1.2f,%1.2f,%1.2f,%1.2f,%1.2f,%1.2f\n", x(0), x(0), x(2), xDot(0),
+    printf("%1.2f,%1.2f,%1.2f,%1.2f,%1.2f,%1.2f\n", x(0), x(1), x(2), xDot(0),
            xDot(1), xDot(2));
 
     pros::delay(50);

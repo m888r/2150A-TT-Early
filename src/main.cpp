@@ -20,7 +20,9 @@ void initialize() {
 
   robot::odometry.reset();
 
-  subsystem::drive::initXDriveDebug();
+  // subsystem::drive::initXDriveDebug();
+
+  auton::init();
 }
 
 /**
@@ -43,7 +45,6 @@ void competition_initialize() {
   robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   robot::lift.setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
   pros::delay(200);
-  auton::init();
   auton::pollSensor();
   //lcd::initButtons();
 }
@@ -99,6 +100,8 @@ void autonomous() {
 void opcontrol() {
   using namespace subsystem;
 
+
+  robot::intakeGroup.setCurrentLimit(2500);
   okapi::Controller master(okapi::ControllerId::master);
 
   robot::xDrive.setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
@@ -118,11 +121,12 @@ void opcontrol() {
 
   okapi::ControllerButton resetLiftButton(okapi::ControllerDigital::B);
 
-
   okapi::ControllerButton motorTestBtn(okapi::ControllerDigital::A);
   
   bool defenseModeActive = false;
   bool placingModeActive = false;
+
+  drive::stop();
 
 	while (true) {
 		double strafeLeft = master.getAnalog(okapi::ControllerAnalog::leftX);

@@ -8,12 +8,12 @@ using namespace okapi::literals;
 okapi::QLength wheelDiameter = 3.25_in * sqrt(2);
 okapi::QLength encoderWheelDiameter = 2.75_in;
 okapi::QLength encoderWidth =
-    10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8 / 90.0) * (90.5 / 89.3) * (1080.0 / 1104.2) * (720.0 / 726.0) * (1080 / 1082.0);
+    10_in * (363.55 / 360.0) * (90.0 / 93.26) * (95.8 / 90.0) * (90.5 / 89.3) * (1080.0 / 1104.2) * (720.0 / 726.0) * (1080.0 / 1082.0) * (1080.0 / 1091.8);
 
 const int frontRightPort = 21;
-const int frontLeftPort = 6;
-const int backRightPort = 8;
-const int backLeftPort = 11;
+const int frontLeftPort = 7;
+const int backRightPort = 18;
+const int backLeftPort = 1;
 
 okapi::Motor frontRight(-frontRightPort);
 okapi::Motor frontLeft(frontLeftPort);
@@ -25,16 +25,16 @@ okapi::Motor frontRightUV(-frontRightPort);
 okapi::Motor backLeftUV(-backLeftPort);
 okapi::Motor backRightUV(-backRightPort);
 
-okapi::Motor intakeRight(13); // was 16
-okapi::Motor intakeLeft(-7); // was a literal port mass murderer before replacing motor
+okapi::Motor intakeRight(20); // was 16
+okapi::Motor intakeLeft(-6); // was a literal port mass murderer before replacing motor
 okapi::MotorGroup intakeGroup({intakeRight, intakeLeft});
 
-okapi::Motor tilt(-12); // killed port 15
+okapi::Motor tilt(-13); // killed port 15
 
 okapi::Motor lift(17);
 
 // IMU port 16
-pros::Imu imu(4);
+pros::Imu imu(2);
 
 pros::ADIDigitalIn selectionBtn('F');
 
